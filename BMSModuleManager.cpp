@@ -46,7 +46,7 @@ void BMSModuleManager::clearmodules()
 
 void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
 {
-  int CMU =(msg.id & 0xFF);
+  int CMU = (msg.id & 0xFF);
   modules[CMU].decodetemp(msg);
   if (debug == 1 && CMU > 0)
   {
@@ -58,48 +58,54 @@ void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
 
 void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
 {
+ // if ((msg.id & 0x0F0) > 0x020 && (msg.id & 0x0F0) < 0x060)
+  //{
     int Id = msg.id & 0x0F0;
-    int CMU = msg.id & 0x00F;
-    // Serial.print(ID);
-    // Serial.print(" | ");
-    // Serial.print(module);
+    int CMU = (msg.id & 0x00F)+1;
+    if(msg.id == 0x100)
+    {
+      Serial.println(msg.id,HEX);
+    }
+/*    
     if (debug == 1)
     {
       Serial.println();
       Serial.print(CMU);
       Serial.print(",");
-      Serial.print(Id);
-Serial.print(" | ");
+      Serial.print(msg.id);
+      Serial.print(" | ");
     }
+    */
     switch (Id)
     {
       case 0x020:
-        Id=1;
+        Id = 1;
         break;
       case 0x030:
-        Id=2;
+        Id = 2;
         break;
 
       case 0x040:
-        Id=3;
+        Id = 3;
         break;
 
       case 0x050:
-        Id=4;
+        Id = 4;
         break;
     }
-  if (CMU > 0 && CMU < 64)
-  {
-    if (debug == 1)
+    if (CMU < 8 && Id < 5)
     {
-      Serial.print(CMU);
-      Serial.print(",");
-      Serial.print(Id);
-      Serial.println();
+      if (debug == 1)
+      {
+        Serial.print(CMU);
+        Serial.print(",");
+        Serial.print(Id);
+        Serial.println();
+      }
     }
     modules[CMU].setExists(true);
     modules[CMU].decodecan(Id, msg);
-  }
+  //}
 }
 
 void BMSModuleManager::balanceCells()
@@ -506,6 +512,27 @@ void BMSModuleManager::printPackDetails()
       SERIALCONSOLE.print(modules[y].getTemperature(2));
       SERIALCONSOLE.println("C");
 
+    }
+  }
+}
+
+void BMSModuleManager::printAllCSV()
+{
+  for (int y = 1; y < 63; y++)
+  {
+    if (modules[y].isExisting())
+    {
+      SERIALCONSOLE.print(y);
+      SERIALCONSOLE.print(",");
+      for (int i = 0; i < 6; i++)
+      {
+        SERIALCONSOLE.print(modules[y].getCellVoltage(i));
+        SERIALCONSOLE.print(",");
+      }
+      SERIALCONSOLE.print(modules[y].getTemperature(0));
+      SERIALCONSOLE.print(",");
+      SERIALCONSOLE.print(modules[y].getTemperature(1));  
+      SERIALCONSOLE.println();
     }
   }
 }
