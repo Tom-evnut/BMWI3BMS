@@ -16,7 +16,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 181220;
+int firmver = 190110;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -213,6 +213,7 @@ void loadSettings()
   settings.chargertype = 2; // 1 - Brusa NLG5xx 2 - Volt charger 0 -No Charger
   settings.chargerspd = 100; //ms per message
   settings.UnderDur = 5000; //ms of allowed undervoltage before throwing open stopping discharge.
+  settings.CurDead = 5;// mV of dead band on current sensor
 }
 
 
@@ -891,7 +892,7 @@ void getcurrent()
       }
       RawCur = int16_t((value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1) / (settings.convlow * 0.0001);
 
-      if (value < 100 || value > (adc->getMaxValue(ADC_0) - 100))
+      if ((int16_t(value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1) <  settings.CurDead || (int16_t(value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1) < - settings.CurDead)
       {
         RawCur = 0;
       }
@@ -1423,6 +1424,14 @@ void menu()
       case '3':
         menuload = 1;
         outputcheck = !outputcheck;
+        if (outputcheck == 0)
+        {
+          contctrl = 0;
+          digitalWrite(OUT1, LOW);
+          digitalWrite(OUT2, LOW);
+          digitalWrite(OUT3, LOW);
+          digitalWrite(OUT4, LOW);
+        }
         incomingByte = 'd';
         break;
 
@@ -1516,6 +1525,15 @@ void menu()
         if (Serial.available() > 0)
         {
           settings.convhigh = Serial.parseInt();
+        }
+        incomingByte = 'c';
+        break;
+
+      case '6':
+        menuload = 1;
+        if (Serial.available() > 0)
+        {
+          settings.CurDead = Serial.parseInt();
         }
         incomingByte = 'c';
         break;
@@ -2170,7 +2188,12 @@ void menu()
           SERIALCONSOLE.print(settings.convhigh * 0.1, 1);
           SERIALCONSOLE.println(" mV/A");
         }
-
+        if (settings.cursens == Analoguesing || settings.cursens == Analoguedual)
+        {
+          SERIALCONSOLE.print("6 - Current Sensor Deadband:");
+          SERIALCONSOLE.print(settings.CurDead);
+          SERIALCONSOLE.println(" mV");
+        }
         SERIALCONSOLE.println("q - Go back to menu");
         menuload = 2;
         break;
@@ -2502,10 +2525,10 @@ void outputdebug()
     digitalWrite(OUT2, HIGH);
     digitalWrite(OUT3, HIGH);
     digitalWrite(OUT4, HIGH);
-    digitalWrite(OUT5, HIGH);
-    digitalWrite(OUT6, HIGH);
-    digitalWrite(OUT7, HIGH);
-    digitalWrite(OUT8, HIGH);
+    analogWrite(OUT5, 255);
+    analogWrite(OUT6, 255);
+    analogWrite(OUT7, 255);
+    analogWrite(OUT8, 255);
     outputstate ++;
   }
   else
@@ -2514,10 +2537,10 @@ void outputdebug()
     digitalWrite(OUT2, LOW);
     digitalWrite(OUT3, LOW);
     digitalWrite(OUT4, LOW);
-    digitalWrite(OUT5, LOW);
-    digitalWrite(OUT6, LOW);
-    digitalWrite(OUT7, LOW);
-    digitalWrite(OUT8, LOW);
+    analogWrite(OUT5, 0);
+    analogWrite(OUT6, 0);
+    analogWrite(OUT7, 0);
+    analogWrite(OUT8, 0);
     outputstate ++;
   }
   if (outputstate > 10)
@@ -2598,6 +2621,7 @@ void pwmcomms()
       Serial.print(" OUT7 ");
   */
 }
+
 void chargercomms()
 {
   if (settings.chargertype == Elcon)

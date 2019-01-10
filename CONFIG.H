@@ -87,4 +87,5 @@ typedef struct {
   int chargertype;
   int chargerspd;
   uint16_t UnderDur;
+  uint16_t CurDead;
 } EEPROMSettings;
