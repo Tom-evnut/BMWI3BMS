@@ -58,7 +58,7 @@ void SerialConsole::loop() {
     {
         prettyCounter = millis();
         if (whichDisplay == 0) bms.printPackSummary();
-        if (whichDisplay == 1) bms.printPackDetails();
+        if (whichDisplay == 1) bms.printPackDetails(2);
     }
 }
               
