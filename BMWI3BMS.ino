@@ -16,7 +16,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 190119;
+int firmver = 190127;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -902,7 +902,7 @@ void getcurrent()
       }
       RawCur = int16_t((value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1) / (settings.convlow * 0.0001);
 
-      if ((int16_t(value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1) <  settings.CurDead || (int16_t(value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1) < - settings.CurDead)
+      if (abs((int16_t(value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1)) <  settings.CurDead)
       {
         RawCur = 0;
       }
@@ -1001,6 +1001,7 @@ void getcurrent()
   }
   RawCur = 0;
 }
+
 
 void updateSOC()
 {
