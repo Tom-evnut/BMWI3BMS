@@ -127,7 +127,9 @@ int maxac1 = 16; //Shore power 16A per charger
 int maxac2 = 10; //Generator Charging
 int chargerid1 = 0x618; //bulk chargers
 int chargerid2 = 0x638; //finishing charger
-float chargerend = 10.0; //turning off the bulk charger before end voltage
+float chargerendbulk = 0; //V before Charge Voltage to turn off the bulk charger/s
+float chargerend = 0; //V before Charge Voltage to turn off the finishing charger/s
+int chargertoggle = 0;
 int ncharger = 1; // number of chargers
 
 //variables
@@ -190,6 +192,7 @@ void loadSettings()
   settings.Scells = 12;//Cells in series
   settings.StoreVsetpoint = 3.8; // V storage mode charge max
   settings.discurrentmax = 300; // max discharge current in 0.1A
+  settings.DisTaper = 0.3f; //V offset to bring in discharge taper to Zero Amps at settings.DischVsetpoint
   settings.chargecurrentmax = 300; //max charge current in 0.1A
   settings.chargecurrentend = 50; //end charge current in 0.1A
   settings.socvolt[0] = 3100; //Voltage and SOC curve for voltage based SOC calc
@@ -1410,6 +1413,7 @@ void BMVmessage()//communication with the Victron Color Control System over VEdi
 }
 
 // Settings menu
+// Settings menu
 void menu()
 {
 
@@ -1876,6 +1880,15 @@ void menu()
           incomingByte = 'b';
         }
 
+      case 'h':
+        if (Serial.available() > 0)
+        {
+          settings.DisTaper = Serial.parseInt();
+          settings.DisTaper = settings.DisTaper / 1000;
+          menuload = 1;
+          incomingByte = 'b';
+        }
+
       case 'b':
         if (Serial.available() > 0)
         {
@@ -2323,6 +2336,10 @@ void menu()
         SERIALCONSOLE.print(settings.StoreVsetpoint * 1000, 0 );
         SERIALCONSOLE.print("mV");
         SERIALCONSOLE.println("  ");
+        SERIALCONSOLE.print("h - Discharge Current Taper Offset: ");
+        SERIALCONSOLE.print(settings.DisTaper * 1000, 0 );
+        SERIALCONSOLE.print("mV");
+        SERIALCONSOLE.println("  ");
 
         SERIALCONSOLE.println();
         menuload = 3;
@@ -2517,7 +2534,17 @@ void currentlimit()
   if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getLowCellVolt() < settings.DischVsetpoint)
   {
     discurrent = 0;
-
+  }
+  else
+  {
+    if (bms.getLowCellVolt() > (settings.DischVsetpoint + settings.DisTaper))
+    {
+      discurrent = settings.discurrentmax;
+    }
+    else
+    {
+      discurrent = map(bms.getLowCellVolt(), settings.DischVsetpoint, (settings.DischVsetpoint + settings.DisTaper), 0, settings.chargecurrentmax);
+    }
   }
   ///No negative currents///
   if (discurrent < 0)
@@ -2529,6 +2556,7 @@ void currentlimit()
     chargecurrent = 0;
   }
 }
+
 void inputdebug()
 {
   Serial.println();
@@ -2736,8 +2764,8 @@ void chargercomms()
     }
     msg.buf[5] = highByte(chargecurrent / ncharger);
     msg.buf[6] = lowByte(chargecurrent / ncharger);
-    msg.buf[3] = highByte(uint16_t(((settings.ChargeVsetpoint * settings.Scells ) - chargerend) * 10));
-    msg.buf[4] = lowByte(uint16_t(((settings.ChargeVsetpoint * settings.Scells ) - chargerend)  * 10));
+    msg.buf[3] = highByte(uint16_t(((settings.ChargeVsetpoint * settings.Scells ) - chargerendbulk) * 10));
+    msg.buf[4] = lowByte(uint16_t(((settings.ChargeVsetpoint * settings.Scells ) - chargerendbulk)  * 10));
     Can0.write(msg);
 
     delay(2);
@@ -2755,8 +2783,8 @@ void chargercomms()
       msg.buf[1] = highByte(maxac2 * 10);
       msg.buf[2] = lowByte(maxac2 * 10);
     }
-    msg.buf[3] = highByte(uint16_t((settings.ChargeVsetpoint * settings.Scells ) * 10));
-    msg.buf[4] = lowByte(uint16_t((settings.ChargeVsetpoint * settings.Scells ) * 10));
+    msg.buf[3] = highByte(uint16_t(((settings.ChargeVsetpoint * settings.Scells ) - chargerend) * 10));
+    msg.buf[4] = lowByte(uint16_t(((settings.ChargeVsetpoint * settings.Scells ) - chargerend) * 10));
     msg.buf[5] = highByte(chargecurrent / ncharger);
     msg.buf[6] = lowByte(chargecurrent / ncharger);
     Can0.write(msg);
