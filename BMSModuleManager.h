@@ -30,6 +30,8 @@ public:
     void setSensors(int sensor,float Ignore);
     float getPackVoltage();
     float getAvgTemperature();
+        float getHighTemperature();
+    float getLowTemperature();
     float getAvgCellVolt();
     float getLowCellVolt();
     float getHighCellVolt();
@@ -52,6 +54,8 @@ private:
     float highestPackVolt;
     float lowestPackTemp;
     float highestPackTemp;
+        float highTemp;
+    float lowTemp;
     BMSModule modules[MAX_MODULE_ADDR + 1]; // store data for as many modules as we've configured for.
     int batteryID;
     int numFoundModules;                    // The number of modules that seem to exist

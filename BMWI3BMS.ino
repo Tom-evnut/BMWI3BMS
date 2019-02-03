@@ -16,7 +16,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 190127;
+int firmver = 190203;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -643,7 +643,7 @@ void loop()
   }
 
   alarmupdate();
-  //dashupdate();
+  dashupdate();
 
   if (millis() - cleartime > 1000)
   {
@@ -2700,6 +2700,93 @@ void pwmcomms()
       Serial.print(" OUT7 ");
   */
 }
+
+void dashupdate()
+{
+  Serial2.write("stat.txt=");
+  Serial2.write(0x22);
+  switch (bmsstatus)
+  {
+    case (Boot):
+      Serial2.print(" Boot ");
+      break;
+
+    case (Ready):
+      Serial2.print(" Ready ");
+      break;
+
+    case (Precharge):
+      Serial2.print(" Precharge ");
+      break;
+
+    case (Drive):
+      Serial2.print(" Drive ");
+      break;
+
+    case (Charge):
+      Serial2.print(" Charge ");
+      break;
+
+    case (Error):
+      Serial2.print(" Error ");
+      break;
+  }
+  Serial2.write(0x22);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("soc.val=");
+  Serial2.print(SOC);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("soc1.val=");
+  Serial2.print(SOC);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("current.val=");
+  Serial2.print(abs(currentact) / 1000, 0);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("temp.val=");
+  Serial2.print(bms.getAvgTemperature(), 0);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("templow.val=");
+  Serial2.print(bms.getLowTemperature(), 0);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("temphigh.val=");
+  Serial2.print(bms.getHighTemperature(), 0);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("volt.val=");
+  Serial2.print(bms.getPackVoltage(), 0);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("lowcell.val=");
+  Serial2.print(bms.getLowCellVolt() * 1000, 0);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("highcell.val=");
+  Serial2.print(bms.getHighCellVolt() * 1000, 0);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("firm.val=");
+  Serial2.print(firmver);
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
+  Serial2.write(0xff);
+  Serial2.write(0xff);
+}
+
 
 void chargercomms()
 {
