@@ -5,7 +5,7 @@
 #include "Logger.h"
 #include <ADC.h> //https://github.com/pedvide/ADC
 #include <EEPROM.h>
-#include <FlexCAN.h> //https://github.com/teachop/FlexCAN_Library 
+#include <FlexCAN.h> https://github.com/collin80/FlexCAN_Library
 #include <SPI.h>
 #include <Filters.h>//https://github.com/JonHub/Filters
 
@@ -16,7 +16,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 190215;
+int firmver = 190302;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -563,7 +563,12 @@ void loop()
         break;
 
       case (Error):
-        Discharge = 0;
+          Discharge = 0;
+          digitalWrite(OUT4, LOW);
+          digitalWrite(OUT3, LOW);//turn off charger
+          digitalWrite(OUT2, LOW);
+          digitalWrite(OUT1, LOW);//turn off discharge
+          contctrl = 0; //turn off out 5 and 6
         /*
                   if (digitalRead(IN3) == HIGH) //detect AC present for charging
                   {
@@ -628,7 +633,7 @@ void loop()
     }
     if (CSVdebug != 0)
     {
-      bms.printAllCSV();
+      bms.printAllCSV(millis(), currentact, SOC);
     }
     if (inputcheck != 0)
     {
