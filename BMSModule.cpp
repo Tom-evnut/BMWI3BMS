@@ -16,6 +16,7 @@ BMSModule::BMSModule()
   temperatures[0] = 0.0f;
   temperatures[1] = 0.0f;
   temperatures[2] = 0.0f;
+  temperatures[3] = 0.0f;
   lowestTemperature = 200.0f;
   highestTemperature = -100.0f;
   lowestModuleVolt = 200.0f;
@@ -35,6 +36,7 @@ void BMSModule::clearmodule()
   temperatures[0] = 0.0f;
   temperatures[1] = 0.0f;
   temperatures[2] = 0.0f;
+    temperatures[3] = 0.0f;
   exists = false;
   reset = false;
   moduleAddress = 0;
@@ -42,23 +44,11 @@ void BMSModule::clearmodule()
 
 void BMSModule::decodetemp(CAN_message_t &msg)
 {
-  temperatures[0] = (msg.buf[0] * 0.5) - 43;
-  if (msg.buf[4] = ! 0xFE)
+  for(int g =0; g < 4; g++;)
   {
-    temperatures[1] = (msg.buf[4] * 0.5) - 43;
+  temperatures[g] = msg.buf[g]- 40;
   }
-  else
-  {
-    temperatures[1] = 0;
-  }
-  if (msg.buf[5] = ! 0xFE)
-  {
-    temperatures[2] = (msg.buf[5] * 0.5) - 43;
-  }
-  else
-  {
-    temperatures[2] = 0;
-  }
+  
 }
 
 void BMSModule::decodecan(int Id, CAN_message_t &msg)
@@ -66,27 +56,27 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg)
   switch (Id)
   {
     case 1:
-      cellVolt[0] = float(msg.buf[0] + msg.buf[1] * 256) / 1000;
-      cellVolt[1] = float(msg.buf[2] + msg.buf[3] * 256) / 1000;
-      cellVolt[2] = float(msg.buf[4] + msg.buf[5] * 256) / 1000;
+      cellVolt[0] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
+      cellVolt[1] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
+      cellVolt[2] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
       break;
 
     case 2:
-      cellVolt[3] = float(msg.buf[0] + msg.buf[1] * 256) / 1000;
-      cellVolt[4] = float(msg.buf[2] + msg.buf[3] * 256) / 1000;
-      cellVolt[5] = float(msg.buf[4] + msg.buf[5] * 256) / 1000;
+      cellVolt[3] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
+      cellVolt[4] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
+      cellVolt[5] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
       break;
 
     case 3:
-      cellVolt[6] = float(msg.buf[0] + msg.buf[1] * 256) / 1000;
-      cellVolt[7] = float(msg.buf[2] + msg.buf[3] * 256) / 1000;
-      cellVolt[8] = float(msg.buf[4] + msg.buf[5] * 256) / 1000;
+      cellVolt[6] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
+      cellVolt[7] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
+      cellVolt[8] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
       break;
 
     case 4:
-      cellVolt[9] = float(msg.buf[0] + msg.buf[1] * 256) / 1000;
-      cellVolt[10] = float(msg.buf[2] + msg.buf[3] * 256) / 1000;
-      cellVolt[11] = float(msg.buf[4] + msg.buf[5] * 256) / 1000;
+      cellVolt[9] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
+      cellVolt[10] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
+      cellVolt[11] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
       break;
 
     default:
@@ -468,4 +458,3 @@ void BMSModule::setIgnoreCell(float Ignore)
   Serial.println();
 
 }
-

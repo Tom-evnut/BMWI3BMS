@@ -9,7 +9,7 @@
   the following conditions:
   The above copyright notice and this permission notice shall be included
   in all copies or substantial portions of the Software.
-  
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -729,7 +729,7 @@ void loop()
 
     updateSOC();
     currentlimit();
-    VEcan();
+    //VEcan();
 
     sendcommand();
     if (cellspresent == 0)
@@ -2597,7 +2597,7 @@ void canread()
     CAB300();
   }
 
-  if (inMsg.id > 0x100 && inMsg.id < 0x200)//do VW BMS magic if ids are ones identified to be modules
+  if (inMsg.id > 0x120 && inMsg.id < 0x160)//do VW BMS magic if ids are ones identified to be modules
   {
     if (candebug == 1)
     {
@@ -2608,20 +2608,18 @@ void canread()
       bms.decodecan(inMsg, 0); //do VW BMS if ids are ones identified to be modules
     }
   }
-  /*
-    if ((inMsg.id & 0x1FFFFFFF) < 0x1A555430)    // Determine if ID is standard (11 bits) or extended (29 bits)
+  if ((inMsg.id & 0xFF0) == 0x170)    // Determine if ID is standard (11 bits) or extended (29 bits)
+  {
+    if (candebug == 1)
     {
-      if (candebug == 1)
-      {
-        bms.decodetemp(inMsg, 1);
+      bms.decodetemp(inMsg, 1);
 
-      }
-      else
-      {
-        bms.decodetemp(inMsg, 0);
-      }
     }
-  */
+    else
+    {
+      bms.decodetemp(inMsg, 0);
+    }
+  }
   if (debug == 1)
   {
     if (candebug == 1)

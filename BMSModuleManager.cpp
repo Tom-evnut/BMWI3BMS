@@ -72,7 +72,7 @@ void BMSModuleManager::clearmodules()
 
 void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
 {
-  int CMU = (msg.id & 0xFF);
+  int CMU = (msg.id & 0x00F);
   modules[CMU].decodetemp(msg);
   if (debug == 1 && CMU > 0)
   {
@@ -80,6 +80,9 @@ void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
     Serial.print(CMU);
     Serial.print(" Temp Found");
   }
+  Serial.println();
+    Serial.print(CMU);
+    Serial.print(" Temp Found");
 }
 
 void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
@@ -87,7 +90,7 @@ void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
  // if ((msg.id & 0x0F0) > 0x020 && (msg.id & 0x0F0) < 0x060)
   //{
     int Id = msg.id & 0x0F0;
-    int CMU = (msg.id & 0x00F)+1;
+    int CMU = (msg.id & 0x00F);
     if(msg.id == 0x100)
     {
       Serial.println(msg.id,HEX);
@@ -132,6 +135,10 @@ void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
     modules[CMU].setExists(true);
     modules[CMU].decodecan(Id, msg);
   //}
+          Serial.print(CMU);
+        Serial.print(",");
+        Serial.print(Id);
+        Serial.println();
 }
 
 void BMSModuleManager::balanceCells()
