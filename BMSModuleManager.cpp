@@ -86,10 +86,12 @@ void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
 {
   int Id = msg.id & 0x0F0;
   int CMU = (msg.id & 0x00F);
+  /*
   if (msg.id == 0x100)
   {
     Serial.println(msg.id, HEX);
   }
+  */
   switch (Id)
   {
     case 0x020:
@@ -118,6 +120,7 @@ void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
     }
   }
   modules[CMU].setExists(true);
+  modules[CMU].setReset(true);
   modules[CMU].decodecan(Id, msg);
 }
 
