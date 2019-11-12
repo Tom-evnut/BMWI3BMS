@@ -84,58 +84,41 @@ void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
 
 void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
 {
- // if ((msg.id & 0x0F0) > 0x020 && (msg.id & 0x0F0) < 0x060)
-  //{
-    int Id = msg.id & 0x0F0;
-    int CMU = (msg.id & 0x00F);
-    if(msg.id == 0x100)
-    {
-      Serial.println(msg.id,HEX);
-    }
-/*    
+  int Id = msg.id & 0x0F0;
+  int CMU = (msg.id & 0x00F);
+  if (msg.id == 0x100)
+  {
+    Serial.println(msg.id, HEX);
+  }
+  switch (Id)
+  {
+    case 0x020:
+      Id = 1;
+      break;
+    case 0x030:
+      Id = 2;
+      break;
+
+    case 0x040:
+      Id = 3;
+      break;
+
+    case 0x050:
+      Id = 4;
+      break;
+  }
+  if (CMU < 8 && Id < 5)
+  {
     if (debug == 1)
     {
-      Serial.println();
       Serial.print(CMU);
       Serial.print(",");
-      Serial.print(msg.id);
-      Serial.print(" | ");
+      Serial.print(Id);
+      Serial.println();
     }
-    */
-    switch (Id)
-    {
-      case 0x020:
-        Id = 1;
-        break;
-      case 0x030:
-        Id = 2;
-        break;
-
-      case 0x040:
-        Id = 3;
-        break;
-
-      case 0x050:
-        Id = 4;
-        break;
-    }
-    if (CMU < 8 && Id < 5)
-    {
-      if (debug == 1)
-      {
-        Serial.print(CMU);
-        Serial.print(",");
-        Serial.print(Id);
-        Serial.println();
-      }
-    }
-    modules[CMU].setExists(true);
-    modules[CMU].decodecan(Id, msg);
-  //}
-          Serial.print(CMU);
-        Serial.print(",");
-        Serial.print(Id);
-        Serial.println();
+  }
+  modules[CMU].setExists(true);
+  modules[CMU].decodecan(Id, msg);
 }
 
 void BMSModuleManager::balanceCells()
@@ -525,7 +508,7 @@ void BMSModuleManager::printPackDetails(int digits)
   Logger::console("");
   Logger::console("");
   Logger::console("Modules: %i Cells: %i Strings: %i  Voltage: %fV   Avg Cell Voltage: %fV  Low Cell Voltage: %fV   High Cell Voltage: %fV Delta Voltage: %zmV   Avg Temp: %fC ", numFoundModules, seriescells(),
-                  Pstring, getPackVoltage(), getAvgCellVolt(), LowCellVolt, HighCellVolt, (HighCellVolt-LowCellVolt)*1000, getAvgTemperature());
+                  Pstring, getPackVoltage(), getAvgCellVolt(), LowCellVolt, HighCellVolt, (HighCellVolt - LowCellVolt) * 1000, getAvgTemperature());
   Logger::console("");
   for (int y = 1; y < 63; y++)
   {
@@ -540,7 +523,7 @@ void BMSModuleManager::printPackDetails(int digits)
       SERIALCONSOLE.print(y);
       if (y < 10) SERIALCONSOLE.print(" ");
       SERIALCONSOLE.print("  ");
-      SERIALCONSOLE.print(modules[y].getModuleVoltage(),digits);
+      SERIALCONSOLE.print(modules[y].getModuleVoltage(), digits);
       SERIALCONSOLE.print("V");
       for (int i = 0; i < 12; i++)
       {
@@ -548,7 +531,7 @@ void BMSModuleManager::printPackDetails(int digits)
         SERIALCONSOLE.print("  Cell");
         SERIALCONSOLE.print(cellNum++);
         SERIALCONSOLE.print(": ");
-        SERIALCONSOLE.print(modules[y].getCellVoltage(i),digits);
+        SERIALCONSOLE.print(modules[y].getCellVoltage(i), digits);
         SERIALCONSOLE.print("V");
       }
       SERIALCONSOLE.println();
