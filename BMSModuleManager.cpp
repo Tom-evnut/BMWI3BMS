@@ -80,9 +80,6 @@ void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
     Serial.print(CMU);
     Serial.print(" Temp Found");
   }
-  Serial.println();
-    Serial.print(CMU);
-    Serial.print(" Temp Found");
 }
 
 void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
