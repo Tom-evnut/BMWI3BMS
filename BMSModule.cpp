@@ -36,7 +36,7 @@ void BMSModule::clearmodule()
   temperatures[0] = 0.0f;
   temperatures[1] = 0.0f;
   temperatures[2] = 0.0f;
-    temperatures[3] = 0.0f;
+  temperatures[3] = 0.0f;
   exists = false;
   reset = false;
   moduleAddress = 0;
@@ -44,11 +44,10 @@ void BMSModule::clearmodule()
 
 void BMSModule::decodetemp(CAN_message_t &msg)
 {
-  for(int g =0; g < 4; g++;)
+  for (int g = 0; g < 4; g++)
   {
-  temperatures[g] = msg.buf[g]- 40;
+    temperatures[g] = msg.buf[g] - 40;
   }
-  
 }
 
 void BMSModule::decodecan(int Id, CAN_message_t &msg)

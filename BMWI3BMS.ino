@@ -2601,7 +2601,7 @@ void canread()
   {
     if (candebug == 1)
     {
-      bms.decodecan(inMsg, 1); //do VW BMS if ids are ones identified to be modules
+      bms.decodecan(inMsg, 0); //do VW BMS if ids are ones identified to be modules
     }
     else
     {
@@ -2612,8 +2612,7 @@ void canread()
   {
     if (candebug == 1)
     {
-      bms.decodetemp(inMsg, 1);
-
+      bms.decodetemp(inMsg, 0);
     }
     else
     {
