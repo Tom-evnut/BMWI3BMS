@@ -24,11 +24,13 @@
 #include "config.h"
 #include "SerialConsole.h"
 #include "Logger.h"
+#include "CRC8.h"
 #include <ADC.h> //https://github.com/pedvide/ADC
 #include <EEPROM.h>
 #include <FlexCAN.h>//https://github.com/collin80/FlexCAN_Library
 #include <SPI.h>
 #include <Filters.h>//https://github.com/JonHub/Filters
+
 
 #define CPU_REBOOT (_reboot_Teensyduino_());
 
@@ -177,9 +179,18 @@ int balancecells;
 int debugdigits = 2; //amount of digits behind decimal for voltage reading
 
 //BMW Can Variables///
-uint8_t check1[8] = {0x13, 0x76, 0xD9, 0xBC, 0x9A, 0xFF, 0x50, 0x35};
-uint8_t check2[8] = {0x4A, 0x2F, 0x80, 0xE5, 0xC3, 0xA6, 0x09, 0x6C};
-uint8_t Imod = 0;
+
+//uint8_t check1[8] = {0x13, 0x76, 0xD9, 0xBC, 0x9A, 0xFF, 0x50, 0x35};
+//uint8_t check2[8] = {0x4A, 0x2F, 0x80, 0xE5, 0xC3, 0xA6, 0x09, 0x6C};
+uint8_t Imod, mescycle = 0;
+
+
+//BMW checksum variable///
+
+CRC8 crc8;
+uint8_t checksum;
+const uint8_t finalxor [8] = {0xCF,0xF5,0xBB,0x81,0x27,0x1D,0x53,0x69};
+
 
 
 ADC *adc = new ADC(); // adc object
@@ -363,6 +374,7 @@ void setup()
 
   //bms.clearFaults();
   bms.findBoards();
+  crc8.begin();
   digitalWrite(led, HIGH);
   bms.setPstrings(settings.Pstrings);
   bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt);
@@ -2847,36 +2859,35 @@ void balancing()
 
 void sendcommand() //Send Can Command to get data from slaves
 {
-  for (int I = 0; I < 8; I++)
+  if (mescycle == 0xF)
   {
-    msg.id  = 0x080 | (I);
-    msg.len = 8;
-    msg.buf[0] = 0xc7;
-    msg.buf[1] = 0x10;
-    msg.buf[2] = 0x00;
-    msg.buf[3] = 0x10;
-    msg.buf[4] = 0x20;
-    msg.buf[5] = 0x00;
-    msg.buf[6] = 0x40;
-    msg.buf[7] = check1[(I)];
-    Can0.write(msg);
+    mescycle = 0;
   }
   for (int I = 0; I < 8; I++)
   {
-    delay(2);
     msg.id  = 0x080 | (I);
     msg.len = 8;
-    msg.buf[0] = 0xC7;
-    msg.buf[1] = 0x10;
+    if (balancecells == 0)
+    {
+      msg.buf[0] = 0xc7;
+      msg.buf[1] = 0x10;
+    }
+    else
+    {
+      msg.buf[0] = lowByte(uint16_t(bms.getLowCellVolt() * 1000));
+      msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
+    }
     msg.buf[2] = 0x00;
     msg.buf[3] = 0x50;
-    msg.buf[4] = 0x20;
+    msg.buf[4] = 0x04;
     msg.buf[5] = 0x00;
-    msg.buf[6] = 0x50;
-    msg.buf[7] = check2[(I)];
-    Can0.write(msg);
+    msg.buf[6] = mescycle << 4;
+    msg.buf[7] = getcheck(msg,I);
+    Serial.print(msg.buf[7],HEX);
     delay(2);
+    Can0.write(msg);
   }
+  mescycle ++;
 }
 
 void resetwdog()
@@ -3118,4 +3129,26 @@ void chargercomms()
     }
     Can0.write(msg);
   }
+}
+
+uint8_t getcheck(CAN_message_t &msg,int id)
+{
+  unsigned char canmes [11];
+  int meslen = msg.len + 1; //remove one for crc and add two for id bytes
+  canmes [1] = msg.id;
+  canmes [0] = msg.id >> 8;
+
+  for (int i = 0; i < (msg.len - 1); i++)
+  {
+    canmes[i + 2] = msg.buf[i];
+  }
+  
+  Serial.println();
+  for (int i = 0; i <  meslen; i++)
+  {
+    Serial.print(canmes[i], HEX);
+    Serial.print("|");
+  }
+
+  return (crc8.get_crc8(canmes, meslen, finalxor[id]));
 }
