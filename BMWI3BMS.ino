@@ -189,7 +189,7 @@ uint8_t Imod, mescycle = 0;
 
 CRC8 crc8;
 uint8_t checksum;
-const uint8_t finalxor [8] = {0xCF,0xF5,0xBB,0x81,0x27,0x1D,0x53,0x69};
+const uint8_t finalxor [8] = {0xCF, 0xF5, 0xBB, 0x81, 0x27, 0x1D, 0x53, 0x69};
 
 
 
@@ -2882,8 +2882,8 @@ void sendcommand() //Send Can Command to get data from slaves
     msg.buf[4] = 0x04;
     msg.buf[5] = 0x00;
     msg.buf[6] = mescycle << 4;
-    msg.buf[7] = getcheck(msg,I);
-    Serial.print(msg.buf[7],HEX);
+    msg.buf[7] = getcheck(msg, I);
+    //Serial.print(msg.buf[7],HEX);
     delay(2);
     Can0.write(msg);
   }
@@ -3131,7 +3131,7 @@ void chargercomms()
   }
 }
 
-uint8_t getcheck(CAN_message_t &msg,int id)
+uint8_t getcheck(CAN_message_t &msg, int id)
 {
   unsigned char canmes [11];
   int meslen = msg.len + 1; //remove one for crc and add two for id bytes
@@ -3142,13 +3142,13 @@ uint8_t getcheck(CAN_message_t &msg,int id)
   {
     canmes[i + 2] = msg.buf[i];
   }
-  
-  Serial.println();
-  for (int i = 0; i <  meslen; i++)
-  {
+  /*
+    Serial.println();
+    for (int i = 0; i <  meslen; i++)
+    {
     Serial.print(canmes[i], HEX);
     Serial.print("|");
-  }
-
+    }
+  */
   return (crc8.get_crc8(canmes, meslen, finalxor[id]));
 }
