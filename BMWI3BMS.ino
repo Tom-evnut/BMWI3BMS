@@ -1260,6 +1260,7 @@ void SOCcharged(int y)
   if (y == 2)
   {
     SOC = 100;
+    ampsecond = (settings.CAP * settings.Pstrings * 1000) / 0.27777777777778 ; //reset to full, dependant on given capacity. Need to improve with auto correction for capcity.
   }
 }
 
