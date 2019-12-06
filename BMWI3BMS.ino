@@ -39,7 +39,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 191203;
+int firmver = 191206;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -524,7 +524,7 @@ void loop()
           }
         }
 
-       
+
         if (SOCset == 1)
         {
           if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
@@ -707,9 +707,12 @@ void loop()
       {
         if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() < settings.UnderVSetpoint)
         {
-          SERIALCONSOLE.println("  ");
-          SERIALCONSOLE.print("   !!! Undervoltage Fault !!!");
-          SERIALCONSOLE.println("  ");
+          if (debug != 0)
+          {
+            SERIALCONSOLE.println("  ");
+            SERIALCONSOLE.print("   !!! Undervoltage Fault !!!");
+            SERIALCONSOLE.println("  ");
+          }
           bmsstatus = Error;
           ErrorReason = 1;
         }
@@ -767,9 +770,12 @@ void loop()
     {
       if (cellspresent != bms.seriescells()) //detect a fault in cells detected
       {
-        SERIALCONSOLE.println("  ");
-        SERIALCONSOLE.print("   !!! Series Cells Fault !!!");
-        SERIALCONSOLE.println("  ");
+        if (debug != 0)
+        {
+          SERIALCONSOLE.println("  ");
+          SERIALCONSOLE.print("   !!! Series Cells Fault !!!");
+          SERIALCONSOLE.println("  ");
+        }
         bmsstatus = Error;
         ErrorReason = 3;
       }
@@ -801,9 +807,12 @@ void loop()
     else
     {
       //missing module
-      SERIALCONSOLE.println("  ");
-      SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
-      SERIALCONSOLE.println("  ");
+      if (debug != 0)
+      {
+        SERIALCONSOLE.println("  ");
+        SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
+        SERIALCONSOLE.println("  ");
+      }
       bmsstatus = Error;
       ErrorReason = 4;
     }
