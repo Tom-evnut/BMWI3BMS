@@ -39,7 +39,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 191206;
+int firmver = 200109;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -316,7 +316,7 @@ void setup()
   SERIALCONSOLE.println("Starting up!");
   SERIALCONSOLE.println("SimpBMS V2 BMW I3");
 
-  Serial2.begin(9600);
+  Serial2.begin(115200);
 
   // Display reason the Teensy was last reset
   Serial.println();
@@ -759,7 +759,7 @@ void loop()
 
     updateSOC();
     currentlimit();
-    //VEcan();
+    VEcan();
 
     sendcommand();
     if (cellspresent == 0)
@@ -785,7 +785,6 @@ void loop()
     {
       dashupdate();
     }
-
     resetwdog();
   }
   if (millis() - cleartime > 5000)
@@ -2785,7 +2784,7 @@ void currentlimit()
       {
         if (bms.getLowCellVolt() < (settings.DischVsetpoint + settings.DisTaper))
         {
-          discurrent = discurrent - map(bms.getLowCellVolt(), settings.DischVsetpoint, (settings.DischVsetpoint + settings.DisTaper), settings.chargecurrentmax, 0);
+          discurrent = discurrent - map(bms.getLowCellVolt(), settings.DischVsetpoint, (settings.DischVsetpoint + settings.DisTaper), settings.discurrentmax, 0);
         }
       }
 
