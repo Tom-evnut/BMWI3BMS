@@ -2647,7 +2647,7 @@ void canread()
     CAB300();
   }
 
-  if (inMsg.id > 0x120 && inMsg.id < 0x160)//do VW BMS magic if ids are ones identified to be modules
+  if (inMsg.id > 0x99 && inMsg.id < 0x160)//do VW BMS magic if ids are ones identified to be modules
   {
     if (candebug == 1)
     {
