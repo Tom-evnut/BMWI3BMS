@@ -84,8 +84,8 @@ void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
 
 void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
 {
-  int Id = (msg.id & 0x0F0)+1;
-  int CMU = (msg.id & 0x00F);
+  int Id = (msg.id & 0x0F0);
+  int CMU = (msg.id & 0x00F)+1;
   /*
     if (msg.id == 0x100)
     {
