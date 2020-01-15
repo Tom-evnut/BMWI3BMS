@@ -72,7 +72,7 @@ void BMSModuleManager::clearmodules()
 
 void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
 {
-  int CMU = (msg.id & 0x00F)+1;
+  int CMU = (msg.id & 0x00F) + 1;
   modules[CMU].decodetemp(msg);
   if (debug == 1 && CMU > 0)
   {
@@ -85,7 +85,7 @@ void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
 void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
 {
   int Id = (msg.id & 0x0F0);
-  int CMU = (msg.id & 0x00F)+1;
+  int CMU = (msg.id & 0x00F) + 1;
   /*
     if (msg.id == 0x100)
     {
@@ -458,6 +458,8 @@ void BMSModuleManager::printPackDetails(int digits)
       SERIALCONSOLE.print(modules[y].getTemperature(1));
       SERIALCONSOLE.print("C Temp 3: ");
       SERIALCONSOLE.print(modules[y].getTemperature(2));
+      SERIALCONSOLE.print("C Temp 4: ");
+      SERIALCONSOLE.print(modules[y].getTemperature(3));
       SERIALCONSOLE.println("C");
 
     }
