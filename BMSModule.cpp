@@ -93,19 +93,6 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg)
 /*
   Reading the status of the board to identify any flags, will be more useful when implementing a sleep cycle
 */
-void BMSModule::readStatus()
-{
-  uint8_t payload[3];
-  uint8_t buff[8];
-  payload[0] = moduleAddress << 1; //adresss
-  payload[1] = REG_ALERT_STATUS;//Alert Status start
-  payload[2] = 0x04;
-  BMSUtil::sendDataWithReply(payload, 3, false, buff, 7);
-  alerts = buff[3];
-  faults = buff[4];
-  COVFaults = buff[5];
-  CUVFaults = buff[6];
-}
 
 uint8_t BMSModule::getFaults()
 {

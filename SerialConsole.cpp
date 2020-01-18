@@ -130,28 +130,10 @@ void SerialConsole::handleShortCmd()
     case 'H':
         printMenu();
         break;
-    case 'S':
-        Logger::console("Sleeping all connected boards");
-        bms.sleepBoards();
-        break;
-    case 'W':
-        Logger::console("Waking up all connected boards");
-        bms.wakeBoards();
-        break;
-    case 'C':
-        Logger::console("Clearing all faults");
-        bms.clearFaults();
-        break;
-    case 'F':
-        bms.findBoards();
-        break;
     case 'R':
         Logger::console("Renumbering all boards.");
         bms.renumberBoardIDs();
         break;
-    case 'B':
-        bms.balanceCells();
-        break;    
     case 'p':
         if (whichDisplay == 1 && printPrettyDisplay) whichDisplay = 0;
         else
@@ -240,6 +222,3 @@ void SerialConsole::handleShortCmd()
         }
     }     
  */
-
-
-

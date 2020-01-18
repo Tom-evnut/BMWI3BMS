@@ -39,7 +39,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 200109;
+int firmver = 200117;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -136,7 +136,7 @@ int value;
 float currentact, RawCur;
 float ampsecond;
 unsigned long lasttime;
-unsigned long looptime, looptime1, UnderTime, cleartime, baltimer = 0; //ms
+unsigned long looptime, looptime1, UnderTime, cleartime, baltimer, commandtime = 0; //ms
 int currentsense = 14;
 int sensor = 1;
 
@@ -183,6 +183,8 @@ int debugdigits = 2; //amount of digits behind decimal for voltage reading
 //uint8_t check1[8] = {0x13, 0x76, 0xD9, 0xBC, 0x9A, 0xFF, 0x50, 0x35};
 //uint8_t check2[8] = {0x4A, 0x2F, 0x80, 0xE5, 0xC3, 0xA6, 0x09, 0x6C};
 uint8_t Imod, mescycle = 0;
+uint8_t nextmes = 0;
+uint16_t commandrate = 50;
 
 
 //BMW checksum variable///
@@ -365,15 +367,10 @@ void setup()
   {
     loadSettings();
   }
-
-  bms.renumberBoardIDs();
-
   Logger::setLoglevel(Logger::Off); //Debug = 0, Info = 1, Warn = 2, Error = 3, Off = 4
 
   lastUpdate = 0;
 
-  //bms.clearFaults();
-  bms.findBoards();
   crc8.begin();
   digitalWrite(led, HIGH);
   bms.setPstrings(settings.Pstrings);
@@ -695,6 +692,12 @@ void loop()
       getcurrent();
     }
   }
+  if (millis() - commandtime > commandrate)
+  {
+    commandtime = millis();
+    sendcommand();
+  }
+
 
   if (millis() - looptime > 500)
   {
@@ -761,7 +764,6 @@ void loop()
     currentlimit();
     VEcan();
 
-    sendcommand();
     if (cellspresent == 0)
     {
       cellspresent = bms.seriescells();//set amount of connected cells, might need delay
@@ -2662,7 +2664,7 @@ void menu()
     }
   }
 
-  if (incomingByte == 115 & menuload == 0)
+  if (incomingByte == 115 && menuload == 0)
   {
     SERIALCONSOLE.println();
     SERIALCONSOLE.println("MENU");
@@ -2956,31 +2958,33 @@ void sendcommand() //Send Can Command to get data from slaves
   {
     mescycle = 0;
   }
-  for (int I = 0; I < 8; I++)
+  if (nextmes == 8)
   {
-    msg.id  = 0x080 | (I);
-    msg.len = 8;
-    if (balancecells == 0)
-    {
-      msg.buf[0] = 0xc7;
-      msg.buf[1] = 0x10;
-    }
-    else
-    {
-      msg.buf[0] = lowByte(uint16_t(bms.getLowCellVolt() * 1000));
-      msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
-    }
-    msg.buf[2] = 0x00;
-    msg.buf[3] = 0x50;
-    msg.buf[4] = 0x04;
-    msg.buf[5] = 0x00;
-    msg.buf[6] = mescycle << 4;
-    msg.buf[7] = getcheck(msg, I);
-    //Serial.print(msg.buf[7],HEX);
-    delay(2);
-    Can0.write(msg);
+    nextmes = 0;
   }
+  msg.id  = 0x080 | (nextmes);
+  msg.len = 8;
+  if (balancecells == 0)
+  {
+    msg.buf[0] = 0xc7;
+    msg.buf[1] = 0x10;
+  }
+  else
+  {
+    msg.buf[0] = lowByte(uint16_t(bms.getLowCellVolt() * 1000));
+    msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
+  }
+  msg.buf[2] = 0x00;
+  msg.buf[3] = 0x50;
+  msg.buf[4] = 0x04;
+  msg.buf[5] = 0x00;
+  msg.buf[6] = mescycle << 4;
+  msg.buf[7] = getcheck(msg, nextmes);
+  //Serial.print(msg.buf[7],HEX);
+  delay(2);
+  Can0.write(msg);
   mescycle ++;
+  nextmes ++;
 }
 
 void resetwdog()

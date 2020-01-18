@@ -15,9 +15,6 @@ public:
     void setupBoards();
     void findBoards();
     void renumberBoardIDs();
-    void clearFaults();
-    void sleepBoards();
-    void wakeBoards();
     void getAllVoltTemp();
     void readSetpoints();
     void setBatteryID(int id);
