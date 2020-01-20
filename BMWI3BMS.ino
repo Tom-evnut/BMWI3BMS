@@ -2974,11 +2974,11 @@ void sendcommand() //Send Can Command to get data from slaves
     msg.buf[0] = lowByte(uint16_t(bms.getLowCellVolt() * 1000));
     msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
   }
-  msg.buf[2] = 0x00;
+  msg.buf[2] = 0xAA;
   msg.buf[3] = 0x00; // 0x00 request no measurements, 0x50 request voltage and temp, 0x10 request voltage measurement, 0x40 request temperature measurement.
-  msg.buf[4] = 0x20; // 0x00 request no balancing
+  msg.buf[4] = 0x10; // 0x00 request no balancing
   msg.buf[5] = 0x00;
-  msg.buf[6] = mescycle << 4;
+  msg.buf[6] = (mescycle << 4) + 0x04;
   msg.buf[7] = getcheck(msg, nextmes);
   //Serial.print(msg.buf[7],HEX);
   delay(2);
