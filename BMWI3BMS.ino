@@ -39,7 +39,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 200117;
+int firmver = 200120;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -2979,7 +2979,7 @@ void sendcommand() //Send Can Command to get data from slaves
     msg.buf[0] = lowByte(uint16_t(bms.getLowCellVolt() * 1000));
     msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
   }
-  msg.buf[2] = 0xAA;
+  msg.buf[2] = 0x00; //balancing bits
   if (testcycle < 3)
   {
     msg.buf[3] = 0x00;
@@ -2987,7 +2987,7 @@ void sendcommand() //Send Can Command to get data from slaves
   }
   else
   {
-    msg.buf[3] = 0x50; // 0x00 request no measurements, 0x50 request voltage and temp, 0x10 request voltage measurement, 0x40 request temperature measurement.
+    msg.buf[3] = 0x50; // 0x00 request no measurements, 0x50 request voltage and temp, 0x10 request voltage measurement, 0x40 request temperature measurement.//balancing bits
     msg.buf[4] = 0x10; // 0x00 request no balancing
   }
   msg.buf[5] = 0x00;
