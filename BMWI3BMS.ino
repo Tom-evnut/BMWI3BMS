@@ -185,6 +185,7 @@ int debugdigits = 2; //amount of digits behind decimal for voltage reading
 uint8_t Imod, mescycle = 0;
 uint8_t nextmes = 0;
 uint16_t commandrate = 50;
+uint8_t testcycle = 0;
 
 
 //BMW checksum variable///
@@ -2975,10 +2976,32 @@ void sendcommand() //Send Can Command to get data from slaves
     msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
   }
   msg.buf[2] = 0xAA;
-  msg.buf[3] = 0x00; // 0x00 request no measurements, 0x50 request voltage and temp, 0x10 request voltage measurement, 0x40 request temperature measurement.
-  msg.buf[4] = 0x10; // 0x00 request no balancing
+  if (testcycle < 3)
+  {
+    msg.buf[3] = 0x00;
+    msg.buf[4] = 0x00;
+  }
+  else
+  {
+    msg.buf[3] = 0x50; // 0x00 request no measurements, 0x50 request voltage and temp, 0x10 request voltage measurement, 0x40 request temperature measurement.
+    msg.buf[4] = 0x10; // 0x00 request no balancing
+  }
+
   msg.buf[5] = 0x00;
-  msg.buf[6] = (mescycle << 4) + 0x04;
+  msg.buf[6] = mescycle << 4;
+  if (testcycle < 2)
+  {
+    testcycle++;
+  }
+  else
+  {
+    msg.buf[6] = msg.buf[6] + 0x04;
+    if (testcycle < 3)
+    {
+      testcycle++;
+    }
+  }
+
   msg.buf[7] = getcheck(msg, nextmes);
   //Serial.print(msg.buf[7],HEX);
   delay(2);
