@@ -266,7 +266,7 @@ uint32_t lastUpdate;
 
 void setup()
 {
-  delay(4000);  //just for easy debugging. It takes a few seconds for USB to come up properly on most OS's
+  //delay(4000);  //just for easy debugging. It takes a few seconds for USB to come up properly on most OS's
   pinMode(ACUR1, INPUT);
   pinMode(ACUR2, INPUT);
   pinMode(IN1, INPUT);
@@ -765,7 +765,7 @@ void loop()
     currentlimit();
     VEcan();
 
-    if (cellspresent == 0)
+    if (cellspresent == 0 && millis() > 1500)
     {
       cellspresent = bms.seriescells();//set amount of connected cells, might need delay
     }
@@ -1009,7 +1009,7 @@ void printbmsstat()
   }
   if (balancecells == 1)
   {
-    SERIALCONSOLE.print("|Balancing Active");
+    //SERIALCONSOLE.print("|Balancing Active");
   }
   SERIALCONSOLE.print("  ");
   SERIALCONSOLE.print(cellspresent);
@@ -2962,6 +2962,10 @@ void sendcommand() //Send Can Command to get data from slaves
   if (nextmes == 8)
   {
     nextmes = 0;
+    if (testcycle < 3)
+    {
+      testcycle++;
+    }
   }
   msg.id  = 0x080 | (nextmes);
   msg.len = 8;
@@ -2986,20 +2990,11 @@ void sendcommand() //Send Can Command to get data from slaves
     msg.buf[3] = 0x50; // 0x00 request no measurements, 0x50 request voltage and temp, 0x10 request voltage measurement, 0x40 request temperature measurement.
     msg.buf[4] = 0x10; // 0x00 request no balancing
   }
-
   msg.buf[5] = 0x00;
   msg.buf[6] = mescycle << 4;
-  if (testcycle < 2)
-  {
-    testcycle++;
-  }
-  else
+  if (testcycle == 2)
   {
     msg.buf[6] = msg.buf[6] + 0x04;
-    if (testcycle < 3)
-    {
-      testcycle++;
-    }
   }
 
   msg.buf[7] = getcheck(msg, nextmes);
