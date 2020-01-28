@@ -364,7 +364,7 @@ float BMSModule::getModuleVoltage()
 
 float BMSModule::getTemperature(int temp)
 {
-  if (temp < 0 || temp > 2) return 0.0f;
+  if (temp < 0 || temp > 3) return 0.0f;
   return temperatures[temp];
 }
 

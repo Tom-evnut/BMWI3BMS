@@ -39,7 +39,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 200120;
+int firmver = 250120;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -2697,7 +2697,7 @@ void canread()
 
   if (inMsg.id > 0x99 && inMsg.id < 0x160)//do VW BMS magic if ids are ones identified to be modules
   {
-    if (candebug == 1)
+    if (candebug == 1 && debug == 1)
     {
       bms.decodecan(inMsg, 1); //do VW BMS if ids are ones identified to be modules
     }
@@ -2710,7 +2710,7 @@ void canread()
   {
     if (candebug == 1)
     {
-      bms.decodetemp(inMsg, 1);
+      bms.decodetemp(inMsg, 1 && debug == 1);
     }
     else
     {
