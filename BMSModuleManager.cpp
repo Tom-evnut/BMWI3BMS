@@ -94,6 +94,9 @@ void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
   */
   switch (Id)
   {
+    case 0x000:
+      Id = 0;
+      break;
     case 0x020:
       Id = 1;
       break;
@@ -437,7 +440,9 @@ void BMSModuleManager::printPackDetails(int digits)
       SERIALCONSOLE.print(modules[y].getTemperature(2));
       SERIALCONSOLE.print("C Temp 4: ");
       SERIALCONSOLE.print(modules[y].getTemperature(3));
-      SERIALCONSOLE.println("C");
+      SERIALCONSOLE.print("C Status: 0x");
+      SERIALCONSOLE.println(modules[y].getError(), HEX);
+
 
     }
   }

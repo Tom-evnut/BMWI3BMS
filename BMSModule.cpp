@@ -24,6 +24,7 @@ BMSModule::BMSModule()
   exists = false;
   reset = false;
   moduleAddress = 0;
+  error = 0;
 }
 
 void BMSModule::clearmodule()
@@ -54,6 +55,10 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg)
 {
   switch (Id)
   {
+    case 0:
+      error = msg.buf[0] + (msg.buf[1] << 8) + (msg.buf[2] << 16) + (msg.buf[3] << 24);
+      break;
+
     case 1:
       cellVolt[0] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
       cellVolt[1] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
@@ -306,15 +311,15 @@ float BMSModule::getLowTemp()
   {
     return (temperatures[0]);
   }
-    if (temperatures[1] < temperatures[0] && temperatures[1] < temperatures[2] && temperatures[1] < temperatures[3])
+  if (temperatures[1] < temperatures[0] && temperatures[1] < temperatures[2] && temperatures[1] < temperatures[3])
   {
     return (temperatures[1]);
   }
-    if (temperatures[2] < temperatures[0] && temperatures[2] < temperatures[1] && temperatures[2] < temperatures[3])
+  if (temperatures[2] < temperatures[0] && temperatures[2] < temperatures[1] && temperatures[2] < temperatures[3])
   {
     return (temperatures[2]);
   }
-    if (temperatures[3] < temperatures[1] && temperatures[3] < temperatures[2] && temperatures[3] < temperatures[0])
+  if (temperatures[3] < temperatures[1] && temperatures[3] < temperatures[2] && temperatures[3] < temperatures[0])
   {
     return (temperatures[3]);
   }
@@ -322,19 +327,19 @@ float BMSModule::getLowTemp()
 
 float BMSModule::getHighTemp()
 {
-    if (temperatures[0] > temperatures[1] && temperatures[0] > temperatures[2] && temperatures[0] > temperatures[3])
+  if (temperatures[0] > temperatures[1] && temperatures[0] > temperatures[2] && temperatures[0] > temperatures[3])
   {
     return (temperatures[0]);
   }
-    if (temperatures[1] > temperatures[0] && temperatures[1] > temperatures[2] && temperatures[1] > temperatures[3])
+  if (temperatures[1] > temperatures[0] && temperatures[1] > temperatures[2] && temperatures[1] > temperatures[3])
   {
     return (temperatures[1]);
   }
-    if (temperatures[2] > temperatures[0] && temperatures[2] > temperatures[1] && temperatures[2] > temperatures[3])
+  if (temperatures[2] > temperatures[0] && temperatures[2] > temperatures[1] && temperatures[2] > temperatures[3])
   {
     return (temperatures[2]);
   }
-    if (temperatures[3] > temperatures[1] && temperatures[3] > temperatures[2] && temperatures[3] > temperatures[0])
+  if (temperatures[3] > temperatures[1] && temperatures[3] > temperatures[2] && temperatures[3] > temperatures[0])
   {
     return (temperatures[3]);
   }
@@ -377,6 +382,11 @@ void BMSModule::setAddress(int newAddr)
 int BMSModule::getAddress()
 {
   return moduleAddress;
+}
+
+uint32_t BMSModule::getError()
+{
+  return error;
 }
 
 bool BMSModule::isExisting()

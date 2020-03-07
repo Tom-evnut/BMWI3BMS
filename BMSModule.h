@@ -30,6 +30,7 @@ class BMSModule
     uint8_t getAlerts();
     uint8_t getCOVCells();
     uint8_t getCUVCells();
+     uint32_t getError();
     void setAddress(int newAddr);
     int getAddress();
     bool isExisting();
@@ -61,4 +62,5 @@ class BMSModule
     uint8_t moduleAddress;     //1 to 0x3E
     int scells;
     int balstat;
+    uint32_t error;
 };

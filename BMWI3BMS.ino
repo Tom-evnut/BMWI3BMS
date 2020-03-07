@@ -2978,16 +2978,23 @@ void sendcommand() //Send Can Command to get data from slaves
   }
   msg.id  = 0x080 | (nextmes);
   msg.len = 8;
-  if (balancecells == 0)
-  {
-    msg.buf[0] = 0xc7;
-    msg.buf[1] = 0x10;
-  }
-  else
-  {
+  msg.buf[0] = 0x75;
+  msg.buf[1] = 0x0E;
+  /*
+    if (balancedebug == 0)
+    {
+    msg.buf[0] = 0x75;
+    msg.buf[1] = 0x0E;
+    }
+    else
+    {
     msg.buf[0] = lowByte(uint16_t(bms.getLowCellVolt() * 1000));
     msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
-  }
+    }
+  */
+
+  msg.buf[2] = 0x00;
+
   if (balancedebug == 0)
   {
     msg.buf[2] = 0x00; //balancing bits
@@ -2996,6 +3003,7 @@ void sendcommand() //Send Can Command to get data from slaves
   {
     msg.buf[2] = 0xAA;
   }
+
   if (testcycle < 3)
   {
     msg.buf[3] = 0x00;
@@ -3015,6 +3023,18 @@ void sendcommand() //Send Can Command to get data from slaves
 
   msg.buf[7] = getcheck(msg, nextmes);
   //Serial.print(msg.buf[7],HEX);
+  /*
+  if (nextmes == 7)
+  {
+    Serial.println();
+    for (int y = 0; y < 8; y++)
+    {
+      Serial.print(msg.buf[y], HEX);
+      Serial.print("|");
+    }
+    Serial.println();
+  }
+  */
   delay(2);
   Can0.write(msg);
   mescycle ++;
