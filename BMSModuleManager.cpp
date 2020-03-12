@@ -44,6 +44,22 @@ bool BMSModuleManager::checkcomms()
   return true;
 }
 
+
+bool BMSModuleManager::checkstatus()
+{
+  for (int y = 1; y < 20; y++)
+  {
+    if (modules[y].isExisting())
+    {
+      if(modules[y].getError() & 0x2000 >= 0)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 int BMSModuleManager::seriescells()
 {
   spack = 0;
@@ -441,7 +457,9 @@ void BMSModuleManager::printPackDetails(int digits)
       SERIALCONSOLE.print("C Temp 4: ");
       SERIALCONSOLE.print(modules[y].getTemperature(3));
       SERIALCONSOLE.print("C Status: 0x");
-      SERIALCONSOLE.println(modules[y].getError(), HEX);
+      SERIALCONSOLE.print(modules[y].getError(), HEX);
+      SERIALCONSOLE.print(" Bal: 0x");
+      SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
 
 
     }

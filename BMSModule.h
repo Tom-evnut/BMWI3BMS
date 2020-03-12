@@ -10,6 +10,7 @@ class BMSModule
     void clearmodule();
     void readStatus();
     int getscells();
+     int getbalstat();
     bool readModuleValues();
     float getCellVoltage(int cell);
     float getLowCellV();

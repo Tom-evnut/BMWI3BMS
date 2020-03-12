@@ -39,7 +39,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 240220;
+int firmver = 120320;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -1010,7 +1010,7 @@ void printbmsstat()
   }
   if (balancecells == 1)
   {
-    //SERIALCONSOLE.print("|Balancing Active");
+    SERIALCONSOLE.print("|Balancing Active");
   }
   SERIALCONSOLE.print("  ");
   SERIALCONSOLE.print(cellspresent);
@@ -1787,6 +1787,12 @@ void menu()
         incomingByte = 'd';
         break;
 
+      case 'r':
+        menuload = 1;
+        resetbalancedebug();
+        incomingByte = 'd';
+        break;
+
       case 113: //q for quite menu
 
         menuload = 0;
@@ -2519,8 +2525,9 @@ void menu()
         SERIALCONSOLE.println(CSVdebug);
         SERIALCONSOLE.print("9 - Decimal Places to Show :");
         SERIALCONSOLE.println(debugdigits);
-        SERIALCONSOLE.print("b - balance debug :");
-        SERIALCONSOLE.println(balancedebug);
+        //SERIALCONSOLE.print("b - balance debug :");
+        //SERIALCONSOLE.println(balancedebug);
+        SERIALCONSOLE.println("r - reset balance debug");
         SERIALCONSOLE.println("q - Go back to menu");
         menuload = 4;
         break;
@@ -2978,34 +2985,17 @@ void sendcommand() //Send Can Command to get data from slaves
   }
   msg.id  = 0x080 | (nextmes);
   msg.len = 8;
-  msg.buf[0] = lowByte(uint16_t(bms.getLowCellVolt() * 1000));
-  msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
-  /*
-    msg.buf[0] = 0x75;
-    msg.buf[1] = 0x0E;
-
-    if (balancedebug == 0)
-    {
-    msg.buf[0] = 0x75;
-    msg.buf[1] = 0x0E;
-    }
-    else
-    {
-    msg.buf[0] = lowByte(uint16_t(bms.getLowCellVolt() * 1000));
-    msg.buf[1] = highByte(uint16_t(bms.getLowCellVolt() * 1000));
-    }
-  */
-
-  msg.buf[2] = 0x00;
-
-  if (balancedebug == 0)
+  if (balancecells == 1)
   {
-    msg.buf[2] = 0x00; //balancing bits
+    msg.buf[0] = lowByte((uint16_t((bms.getLowCellVolt() + settings.balanceHyst ) * 1000)));
+    msg.buf[1] = highByte((uint16_t((bms.getLowCellVolt() + settings.balanceHyst ) * 1000)));
   }
   else
   {
-    msg.buf[2] = 0xAA;
+    msg.buf[0] = 0x68;
+    msg.buf[1] = 0x10;
   }
+  msg.buf[2] = 0x00; //balancing bits
 
   if (testcycle < 3)
   {
@@ -3015,7 +3005,7 @@ void sendcommand() //Send Can Command to get data from slaves
   else
   {
     msg.buf[3] = 0x50; // 0x00 request no measurements, 0x50 request voltage and temp, 0x10 request voltage measurement, 0x40 request temperature measurement.//balancing bits
-    msg.buf[4] = 0x10; // 0x00 request no balancing
+    msg.buf[4] = 0x08; // 0x00 request no balancing
   }
   msg.buf[5] = 0x00;
   msg.buf[6] = mescycle << 4;
@@ -3042,6 +3032,11 @@ void sendcommand() //Send Can Command to get data from slaves
   Can0.write(msg);
   mescycle ++;
   nextmes ++;
+
+  if (bms.checkstatus() == true)
+  {
+    resetbalancedebug();
+  }
 }
 
 void resetwdog()
@@ -3335,4 +3330,21 @@ uint8_t getcheck(CAN_message_t &msg, int id)
     }
   */
   return (crc8.get_crc8(canmes, meslen, finalxor[id]));
+}
+
+void resetbalancedebug()
+{
+  msg.id  =  0x0B0; //broadcast to all Elteks
+  msg.len = 8;
+  msg.ext = 0;
+  msg.buf[0] = 0xFF;
+  msg.buf[1] = 0x00;
+  msg.buf[2] = 0xCD;
+  msg.buf[3] = 0xA2;
+  msg.buf[4] = 0x00;
+  msg.buf[5] = 0x00;
+  msg.buf[6] = 0x00;
+  msg.buf[7] = 0x00;
+
+  Can0.write(msg);
 }

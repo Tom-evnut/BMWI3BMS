@@ -13,6 +13,8 @@ public:
     void decodetemp(CAN_message_t &msg, int debug);
     void balanceCells();
     void setupBoards();
+        bool checkcomms();
+    bool checkstatus();
     void findBoards();
     void renumberBoardIDs();
     void getAllVoltTemp();
@@ -41,7 +43,7 @@ public:
     void printPackSummary();
     void printPackDetails(int digits);
 
-    bool checkcomms();
+
 
 
 private:
