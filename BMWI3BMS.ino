@@ -766,7 +766,7 @@ void loop()
     currentlimit();
     VEcan();
 
-    if (cellspresent == 0 && millis() > 1500)
+    if (cellspresent == 0 && millis() > 3000)
     {
       cellspresent = bms.seriescells();//set amount of connected cells, might need delay
     }
