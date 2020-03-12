@@ -769,6 +769,7 @@ void loop()
     if (cellspresent == 0 && millis() > 3000)
     {
       cellspresent = bms.seriescells();//set amount of connected cells, might need delay
+      bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt);
     }
     else
     {
