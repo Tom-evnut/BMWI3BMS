@@ -47,6 +47,7 @@ typedef struct {
   uint8_t logLevel;
   float OverVSetpoint;
   float UnderVSetpoint;
+  float DischHys;
   float ChargeVsetpoint;
   float DischVsetpoint;
   float ChargeHys;
@@ -54,6 +55,7 @@ typedef struct {
   float WarnOff;
   float OverTSetpoint;
   float UnderTSetpoint;
+    uint16_t triptime;
   float ChargeTSetpoint;
   float DisTSetpoint;
   float WarnToff;
@@ -90,4 +92,5 @@ typedef struct {
   uint16_t CurDead;
   float DisTaper;
    bool ChargerDirect;
+   uint8_t tripcont;
 } EEPROMSettings;

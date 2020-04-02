@@ -31,15 +31,17 @@
 #include <SPI.h>
 #include <Filters.h>//https://github.com/JonHub/Filters
 
-
-#define CPU_REBOOT (_reboot_Teensyduino_());
+#define RESTART_ADDR       0xE000ED0C
+#define READ_RESTART()     (*(volatile uint32_t *)RESTART_ADDR)
+#define WRITE_RESTART(val) ((*(volatile uint32_t *)RESTART_ADDR) = (val))
+#define CPU_REBOOT WRITE_RESTART(0x5FA0004)
 
 BMSModuleManager bms;
 SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 120320;
+int firmver = 020420;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -95,7 +97,7 @@ int ErrorReason = 0;
 //variables for output control
 int pulltime = 100;
 int contctrl, contstat = 0; //1 = out 5 high 2 = out 6 high 3 = both high
-unsigned long conttimer1, conttimer2, conttimer3, Pretimer, Pretimer1 = 0;
+unsigned long conttimer1, conttimer2, conttimer3, Pretimer, Pretimer1, overtriptimer, undertriptimer, mainconttimer = 0;
 uint16_t pwmfreq = 18000;//pwm frequency
 
 int pwmcurmax = 50;//Max current to be shown with pwm
@@ -212,10 +214,12 @@ void loadSettings()
   settings.ChargeHys = 0.2f; // voltage drop required for charger to kick back on
   settings.WarnOff = 0.1f; //voltage offset to raise a warning
   settings.DischVsetpoint = 3.2f;
+  settings.DischHys = 0.2f; // Discharge voltage offset
   settings.CellGap = 0.2f; //max delta between high and low cell
   settings.OverTSetpoint = 65.0f;
   settings.UnderTSetpoint = -10.0f;
   settings.ChargeTSetpoint = 0.0f;
+  settings.triptime = 500;//mS of delay before counting over or undervoltage
   settings.DisTSetpoint = 40.0f;
   settings.WarnToff = 5.0f; //temp offset before raising warning
   settings.IgnoreTemp = 0; // 0 - use both sensors, 1 or 2 only use that sensor
@@ -255,6 +259,7 @@ void loadSettings()
   settings.UnderDur = 5000; //ms of allowed undervoltage before throwing open stopping discharge.
   settings.CurDead = 5;// mV of dead band on current sensor
   settings.ChargerDirect = 1; //1 - charger is always connected to HV battery // 0 - Charger is behind the contactors
+  settings.tripcont = 1; //in ESSmode 1 - Main contactor function, 0 - Trip function
 }
 
 
@@ -408,7 +413,37 @@ void loop()
       {
         contctrl = contctrl | 4; //turn on negative contactor
 
-
+        if (settings.tripcont != 0)
+        {
+          if (bms.getLowCellVolt() > settings.UnderVSetpoint && bms.getHighCellVolt() < settings.OverVSetpoint)
+          {
+            if (digitalRead(OUT2) == LOW && digitalRead(OUT4) == LOW)
+            {
+              mainconttimer = millis();
+              digitalWrite(OUT4, HIGH);//Precharge start
+              Serial.println();
+              Serial.println("Precharge!!!");
+              Serial.println(mainconttimer);
+              Serial.println();
+            }
+            if (mainconttimer + settings.Pretime < millis() && digitalRead(OUT2) == LOW)
+            {
+              digitalWrite(OUT2, HIGH);//turn on contactor
+              Serial.println();
+              Serial.println("Main On!!!");
+              Serial.println();
+            }
+            if (mainconttimer + settings.Pretime + 500 < millis() )
+            {
+              digitalWrite(OUT4, LOW);//ensure precharge is low
+            }
+          }
+          else
+          {
+            digitalWrite(OUT4, LOW);//ensure precharge is low
+            mainconttimer = 0;
+          }
+        }
         if (digitalRead(IN1) == LOW)//Key OFF
         {
           if (storagemode == 1)
@@ -474,14 +509,18 @@ void loop()
         {
           if (bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighCellVolt() > settings.ChargeVsetpoint)
           {
-            digitalWrite(OUT3, LOW);//turn off charger
-            contctrl = contctrl & 253;
-            Pretimer = millis();
-            Charged = 1;
-            SOCcharged(2);
+            if ((millis() - overtriptimer) > settings.triptime)
+            {
+              digitalWrite(OUT3, LOW);//turn off charger
+              contctrl = contctrl & 253;
+              Pretimer = millis();
+              Charged = 1;
+              SOCcharged(2);
+            }
           }
           else
           {
+            overtriptimer = millis();
             if (Charged == 1)
             {
               if (bms.getHighCellVolt() < (settings.ChargeVsetpoint - settings.ChargeHys))
@@ -510,31 +549,48 @@ void loop()
         }
         if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getLowCellVolt() < settings.DischVsetpoint)
         {
-          digitalWrite(OUT1, LOW);//turn off discharge
-          contctrl = contctrl & 254;
-          Pretimer1 = millis();
+          if ((millis() - undertriptimer) > settings.triptime)
+          {
+            digitalWrite(OUT1, LOW);//turn off discharge
+            contctrl = contctrl & 254;
+            Pretimer1 = millis();
+          }
         }
         else
         {
-          digitalWrite(OUT1, HIGH);//turn on discharge
-          if (Pretimer1 + settings.Pretime < millis())
+          undertriptimer = millis();
+          if (bms.getLowCellVolt() > settings.DischVsetpoint + settings.DischHys)
           {
-            contctrl = contctrl | 1;
+            digitalWrite(OUT1, HIGH);//turn on discharge
+            if (Pretimer1 + settings.Pretime < millis())
+            {
+              contctrl = contctrl | 1;
+            }
           }
         }
-
-
         if (SOCset == 1)
         {
-          if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
+          if (settings.tripcont == 0)
           {
-            digitalWrite(OUT2, HIGH);//trip breaker
+            if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
+            {
+              digitalWrite(OUT2, HIGH);//trip breaker
+            }
+            else
+            {
+              digitalWrite(OUT2, LOW);//trip breaker
+            }
           }
           else
           {
-            digitalWrite(OUT2, LOW);//trip breaker
+            if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
+            {
+              digitalWrite(OUT2, LOW);//turn off contactor
+              digitalWrite(OUT4, LOW);//ensure precharge is low
+            }
           }
         }
+
       }
       else
       {
@@ -549,13 +605,28 @@ void loop()
         */
         if (SOCset == 1)
         {
-          if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
+          if (settings.tripcont == 0)
           {
-            digitalWrite(OUT2, HIGH);//trip breaker
+            if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
+            {
+              digitalWrite(OUT2, HIGH);//trip breaker
+            }
+            else
+            {
+              digitalWrite(OUT2, LOW);//trip breaker
+            }
           }
           else
           {
-            digitalWrite(OUT2, LOW);//trip breaker
+            if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
+            {
+              digitalWrite(OUT2, LOW);//turn off contactor
+              digitalWrite(OUT4, LOW);//ensure precharge is low
+            }
+          }
+          if (bms.getLowCellVolt() > settings.UnderVSetpoint || bms.getHighCellVolt() < settings.OverVSetpoint || bms.getHighTemperature() < settings.OverTSetpoint)
+          {
+            bmsstatus = Boot;
           }
         }
       }
@@ -1211,21 +1282,33 @@ void getcurrent()
 
 void updateSOC()
 {
-  if (SOCset == 0)
+    if (SOCset == 0)
   {
-    SOC = map(uint16_t(bms.getAvgCellVolt() * 1000), settings.socvolt[0], settings.socvolt[2], settings.socvolt[1], settings.socvolt[3]);
-    SERIALCONSOLE.print("  ");
-    SERIALCONSOLE.print(SOC);
-    SERIALCONSOLE.print("  ");
-    ampsecond = (SOC * settings.CAP * settings.Pstrings * 10) / 0.27777777777778 ;
-    SOCset = 1;
+    if (millis() > 9000)
+    {
+      bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt);
+    }
+    if (millis() > 10000)
+    {
+      SOC = map(uint16_t(bms.getAvgCellVolt() * 1000), settings.socvolt[0], settings.socvolt[2], settings.socvolt[1], settings.socvolt[3]);
+
+      ampsecond = (SOC * settings.CAP * settings.Pstrings * 10) / 0.27777777777778 ;
+      SOCset = 1;
+      if (debug != 0)
+      {
+        SERIALCONSOLE.println("  ");
+        SERIALCONSOLE.println("//////////////////////////////////////// SOC SET ////////////////////////////////////////");
+      }
+    }
   }
+  /*
   if (settings.cursens == 1)
   {
     SOC = map(uint16_t(bms.getAvgCellVolt() * 1000), settings.socvolt[0], settings.socvolt[2], settings.socvolt[1], settings.socvolt[3]);
 
     ampsecond = (SOC * settings.CAP * settings.Pstrings * 10) / 0.27777777777778 ;
   }
+  */
   if (settings.voltsoc == 1)
   {
     SOC = map(uint16_t(bms.getAvgCellVolt() * 1000), settings.socvolt[0], settings.socvolt[2], settings.socvolt[1], settings.socvolt[3]);
@@ -1983,7 +2066,7 @@ void menu()
       case '4':
         if (Serial.available() > 0)
         {
-          settings.UnderDur = Serial.parseInt();
+          settings.triptime = Serial.parseInt();
           menuload = 1;
           incomingByte = 'a';
         }
@@ -2136,6 +2219,16 @@ void menu()
         }
         break;
 
+      case '6':
+        settings.tripcont = !settings.tripcont;
+        if (settings.tripcont > 1)
+        {
+          settings.tripcont = 0;
+        }
+        menuload = 1;
+        incomingByte = 'k';
+        break;
+
       case 113: //q to go back to main menu
         gaugedebug = 0;
         menuload = 0;
@@ -2237,6 +2330,16 @@ void menu()
         if (Serial.available() > 0)
         {
           settings.socvolt[3] = Serial.parseInt();
+          menuload = 1;
+          incomingByte = 'b';
+        }
+        break;
+
+      case 'k': //Discharge Voltage hysteresis
+        if (Serial.available() > 0)
+        {
+          settings.DischHys = Serial.parseInt();
+          settings.DischHys  = settings.DischHys  / 1000;
           menuload = 1;
           incomingByte = 'b';
         }
@@ -2461,8 +2564,11 @@ void menu()
         SERIALCONSOLE.print("3 - Temp Warning Offset: ");
         SERIALCONSOLE.print(settings.WarnToff);
         SERIALCONSOLE.println(" C");
-        SERIALCONSOLE.print("4 - Temp Warning Offset: ");
-        SERIALCONSOLE.print(settings.UnderDur);
+        //SERIALCONSOLE.print("4 - Temp Warning delay: ");
+        //SERIALCONSOLE.print(settings.UnderDur);
+        //SERIALCONSOLE.println(" mS");
+        SERIALCONSOLE.print("4 - Over and Under Voltage Delay: ");
+        SERIALCONSOLE.print(settings.triptime);
         SERIALCONSOLE.println(" mS");
         menuload = 7;
         break;
@@ -2489,6 +2595,18 @@ void menu()
         SERIALCONSOLE.println(settings.gaugelow);
         SERIALCONSOLE.print("5 - PWM for Gauge High 0-255 :");
         SERIALCONSOLE.println(settings.gaugehigh);
+        if (settings.ESSmode == 1)
+        {
+          SERIALCONSOLE.print("6 - ESS Main Contactor or Trip :");
+          if (settings.tripcont == 0)
+          {
+            SERIALCONSOLE.println( "Trip Shunt");
+          }
+          else
+          {
+            SERIALCONSOLE.println( "Main Contactor and Precharge");
+          }
+        }
         menuload = 5;
         break;
 
@@ -2670,6 +2788,9 @@ void menu()
         SERIALCONSOLE.print(settings.DisTaper * 1000, 0 );
         SERIALCONSOLE.print("mV");
         SERIALCONSOLE.println("  ");
+        SERIALCONSOLE.print("k - Cell Discharge Voltage Hysteresis: ");
+        SERIALCONSOLE.print(settings.DischHys * 1000, 0);
+        SERIALCONSOLE.print("mV");
 
         SERIALCONSOLE.println();
         menuload = 3;
@@ -3138,13 +3259,11 @@ void dashupdate()
   Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
   Serial2.write(0xff);
   Serial2.write(0xff);
-
   Serial2.print("temp.val=");
   Serial2.print(bms.getAvgTemperature(), 0);
   Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
   Serial2.write(0xff);
   Serial2.write(0xff);
-
   Serial2.print("templow.val=");
   Serial2.print(bms.getLowTemperature(), 0);
   Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
@@ -3156,7 +3275,7 @@ void dashupdate()
   Serial2.write(0xff);
   Serial2.write(0xff);
   Serial2.print("volt.val=");
-  Serial2.print(bms.getPackVoltage(), 0);
+  Serial2.print(bms.getPackVoltage() * 10, 0);
   Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
   Serial2.write(0xff);
   Serial2.write(0xff);
@@ -3181,13 +3300,6 @@ void dashupdate()
   Serial2.write(0xff);
   Serial2.write(0xff);
   Serial2.write(0xff);
-  /*
-    Serial2.print("cellbal.val=");
-    //Serial2.print(bms.getBalancing());
-    Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
-    Serial2.write(0xff);
-    Serial2.write(0xff);
-  */
 }
 
 
