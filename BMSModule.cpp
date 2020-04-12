@@ -61,27 +61,39 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg)
       break;
 
     case 1:
-      cellVolt[0] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
-      cellVolt[1] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
-      cellVolt[2] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
+      if (balstat == 0)
+      {
+        cellVolt[0] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
+        cellVolt[1] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
+        cellVolt[2] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
+      }
       break;
 
     case 2:
-      cellVolt[3] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
-      cellVolt[4] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
-      cellVolt[5] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
+      if (balstat == 0)
+      {
+        cellVolt[3] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
+        cellVolt[4] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
+        cellVolt[5] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
+      }
       break;
 
     case 3:
-      cellVolt[6] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
-      cellVolt[7] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
-      cellVolt[8] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
+      if (balstat == 0)
+      {
+        cellVolt[6] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
+        cellVolt[7] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
+        cellVolt[8] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
+      }
       break;
 
     case 4:
-      cellVolt[9] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
-      cellVolt[10] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
-      cellVolt[11] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
+      if (balstat == 0)
+      {
+        cellVolt[9] = float(msg.buf[0] + (msg.buf[1] & 0x2F) * 256) / 1000;
+        cellVolt[10] = float(msg.buf[2] + (msg.buf[3] & 0x2F) * 256) / 1000;
+        cellVolt[11] = float(msg.buf[4] + (msg.buf[5] & 0x2F) * 256) / 1000;
+      }
       break;
 
     default:

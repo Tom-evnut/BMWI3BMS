@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 020420;
+int firmver = 120420;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -97,7 +97,7 @@ int ErrorReason = 0;
 //variables for output control
 int pulltime = 100;
 int contctrl, contstat = 0; //1 = out 5 high 2 = out 6 high 3 = both high
-unsigned long conttimer1, conttimer2, conttimer3, Pretimer, Pretimer1, overtriptimer, undertriptimer, mainconttimer = 0;
+unsigned long conttimer1, conttimer2, conttimer3, Pretimer, Pretimer1, overtriptimer, undertriptimer, mainconttimer, balancetimer = 0;
 uint16_t pwmfreq = 18000;//pwm frequency
 
 int pwmcurmax = 50;//Max current to be shown with pwm
@@ -166,6 +166,7 @@ int storagemode = 0;
 int cellspresent = 0;
 int dashused = 1;
 int Charged = 0;
+bool balancepauze = 0;
 
 
 //Debugging modes//////////////////
@@ -226,7 +227,7 @@ void loadSettings()
   settings.IgnoreVolt = 0.5;//
   settings.balanceVoltage = 3.9f;
   settings.balanceHyst = 0.04f;
-  settings.balanceDuty = 50;
+  settings.balanceDuty = 5000;
   settings.logLevel = 2;
   settings.CAP = 100; //battery size in Ah
   settings.Pstrings = 1; // strings in parallel used to divide voltage of pack
@@ -1083,6 +1084,11 @@ void printbmsstat()
   if (balancecells == 1)
   {
     SERIALCONSOLE.print("|Balancing Active");
+    SERIALCONSOLE.print("|");
+    //SERIALCONSOLE.print(balancepauze);
+    //SERIALCONSOLE.print("| Counter: ");
+    SERIALCONSOLE.print((balancetimer-millis())*0.001,0);
+    SERIALCONSOLE.print("|");
   }
   SERIALCONSOLE.print("  ");
   SERIALCONSOLE.print(cellspresent);
@@ -1282,7 +1288,7 @@ void getcurrent()
 
 void updateSOC()
 {
-    if (SOCset == 0)
+  if (SOCset == 0)
   {
     if (millis() > 9000)
     {
@@ -1302,12 +1308,12 @@ void updateSOC()
     }
   }
   /*
-  if (settings.cursens == 1)
-  {
+    if (settings.cursens == 1)
+    {
     SOC = map(uint16_t(bms.getAvgCellVolt() * 1000), settings.socvolt[0], settings.socvolt[2], settings.socvolt[1], settings.socvolt[3]);
 
     ampsecond = (SOC * settings.CAP * settings.Pstrings * 10) / 0.27777777777778 ;
-  }
+    }
   */
   if (settings.voltsoc == 1)
   {
@@ -1867,7 +1873,11 @@ void menu()
 
       case 'b':
         menuload = 1;
-        balancedebug = !balancedebug;
+        if (Serial.available() > 0)
+        {
+          settings.balanceDuty = Serial.parseInt();
+        }
+
         incomingByte = 'd';
         break;
 
@@ -2644,8 +2654,9 @@ void menu()
         SERIALCONSOLE.println(CSVdebug);
         SERIALCONSOLE.print("9 - Decimal Places to Show :");
         SERIALCONSOLE.println(debugdigits);
-        //SERIALCONSOLE.print("b - balance debug :");
-        //SERIALCONSOLE.println(balancedebug);
+        SERIALCONSOLE.print("b - balance duration :");
+        SERIALCONSOLE.print(settings.balanceDuty);
+        SERIALCONSOLE.println(" S time before starting is 60s");
         SERIALCONSOLE.println("r - reset balance debug");
         SERIALCONSOLE.println("q - Go back to menu");
         menuload = 4;
@@ -3096,6 +3107,26 @@ void sendcommand() //Send Can Command to get data from slaves
   if (mescycle == 0xF)
   {
     mescycle = 0;
+
+    if (balancetimer < millis())
+    {
+      balancepauze = 1;
+      if (debug == 1)
+      {
+        Serial.println();
+        Serial.println("Reset Balance Timer");
+        Serial.println();
+      }
+      balancetimer = millis() + ((settings.balanceDuty+60)*1000);
+    }
+    else
+    {
+      balancepauze = 0;
+    }
+  }
+  if (balancepauze == 1)
+  {
+    balancecells = 0;
   }
   if (nextmes == 8)
   {
@@ -3109,8 +3140,8 @@ void sendcommand() //Send Can Command to get data from slaves
   msg.len = 8;
   if (balancecells == 1)
   {
-    msg.buf[0] = lowByte((uint16_t((bms.getLowCellVolt() + settings.balanceHyst ) * 1000)));
-    msg.buf[1] = highByte((uint16_t((bms.getLowCellVolt() + settings.balanceHyst ) * 1000)));
+    msg.buf[0] = lowByte((uint16_t((bms.getLowCellVolt()) * 1000) + 10));
+    msg.buf[1] = highByte((uint16_t((bms.getLowCellVolt()) * 1000) + 10));
   }
   else
   {
@@ -3127,7 +3158,14 @@ void sendcommand() //Send Can Command to get data from slaves
   else
   {
     msg.buf[3] = 0x50; // 0x00 request no measurements, 0x50 request voltage and temp, 0x10 request voltage measurement, 0x40 request temperature measurement.//balancing bits
-    msg.buf[4] = 0x08; // 0x00 request no balancing
+    if (balancecells == 1)
+    {
+      msg.buf[4] = 0x08; // 0x00 request no balancing
+    }
+    else
+    {
+      msg.buf[4] = 0x00;
+    }
   }
   msg.buf[5] = 0x00;
   msg.buf[6] = mescycle << 4;
