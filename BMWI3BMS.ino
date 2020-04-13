@@ -227,7 +227,7 @@ void loadSettings()
   settings.IgnoreVolt = 0.5;//
   settings.balanceVoltage = 3.9f;
   settings.balanceHyst = 0.04f;
-  settings.balanceDuty = 5000;
+  settings.balanceDuty = 60;
   settings.logLevel = 2;
   settings.CAP = 100; //battery size in Ah
   settings.Pstrings = 1; // strings in parallel used to divide voltage of pack
@@ -427,14 +427,15 @@ void loop()
               Serial.println(mainconttimer);
               Serial.println();
             }
-            if (mainconttimer + settings.Pretime < millis() && digitalRead(OUT2) == LOW)
+            if (mainconttimer + settings.Pretime < millis() && digitalRead(OUT2) == LOW && abs(currentact) < settings.Precurrent)
             {
               digitalWrite(OUT2, HIGH);//turn on contactor
               Serial.println();
               Serial.println("Main On!!!");
               Serial.println();
+              mainconttimer = millis() + settings.Pretime;
             }
-            if (mainconttimer + settings.Pretime + 500 < millis() )
+            if (mainconttimer + settings.Pretime + 1000 < millis() )
             {
               digitalWrite(OUT4, LOW);//ensure precharge is low
             }
@@ -1087,7 +1088,7 @@ void printbmsstat()
     SERIALCONSOLE.print("|");
     //SERIALCONSOLE.print(balancepauze);
     //SERIALCONSOLE.print("| Counter: ");
-    SERIALCONSOLE.print((balancetimer-millis())*0.001,0);
+    SERIALCONSOLE.print((balancetimer - millis()) * 0.001, 0);
     SERIALCONSOLE.print("|");
   }
   SERIALCONSOLE.print("  ");
@@ -3117,7 +3118,7 @@ void sendcommand() //Send Can Command to get data from slaves
         Serial.println("Reset Balance Timer");
         Serial.println();
       }
-      balancetimer = millis() + ((settings.balanceDuty+60)*1000);
+      balancetimer = millis() + ((settings.balanceDuty + 60) * 1000);
     }
     else
     {
