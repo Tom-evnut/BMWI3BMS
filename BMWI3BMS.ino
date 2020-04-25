@@ -1588,10 +1588,10 @@ void VEcan() //communication with Victron system over CAN
     msg.len = 8;
     msg.buf[0] = 0x00;
     msg.buf[1] = 0x00;
-    msg.buf[2] = lowByte(firmver);
-    msg.buf[3] = highByte(firmver);
-    msg.buf[4] = lowByte(settings.CAP * settings.Pstrings * 37 * settings.Scells);
-    msg.buf[5] = highByte(settings.CAP * settings.Pstrings * 37 * settings.Scells);
+    msg.buf[2] = highByte(firmver);
+    msg.buf[3] = lowByte(firmver);
+    msg.buf[4] = highByte(settings.CAP * settings.Pstrings * 37 * settings.Scells);
+    msg.buf[5] = lowByte(settings.CAP * settings.Pstrings * 37 * settings.Scells);
     msg.buf[6] = 0x00;
     msg.buf[7] = 0x00;
     Can0.write(msg);
@@ -1616,33 +1616,33 @@ void VEcan() //communication with Victron system over CAN
     msg.len = 8;
     if (storagemode == 0)
     {
-      msg.buf[0] = lowByte(uint16_t((settings.ChargeVsetpoint * settings.Scells ) * 10));
-      msg.buf[1] = highByte(uint16_t((settings.ChargeVsetpoint * settings.Scells ) * 10));
+      msg.buf[0] = highByte(uint16_t((settings.ChargeVsetpoint * settings.Scells ) * 10));
+      msg.buf[1] = lowByte(uint16_t((settings.ChargeVsetpoint * settings.Scells ) * 10));
     }
     else
     {
-      msg.buf[0] = lowByte(uint16_t((settings.StoreVsetpoint * settings.Scells ) * 10));
-      msg.buf[1] = highByte(uint16_t((settings.StoreVsetpoint * settings.Scells ) * 10));
+      msg.buf[0] = highByte(uint16_t((settings.StoreVsetpoint * settings.Scells ) * 10));
+      msg.buf[1] = lowByte(uint16_t((settings.StoreVsetpoint * settings.Scells ) * 10));
 
     }
-    msg.buf[2] = lowByte(uint16_t((settings.DischVsetpoint * settings.Scells) * 10));
-    msg.buf[3] = highByte(uint16_t((settings.DischVsetpoint * settings.Scells) * 10));
-    msg.buf[4] = lowByte(discurrent );
-    msg.buf[5] = highByte(discurrent);
-    msg.buf[6] = lowByte(chargecurrent);
-    msg.buf[7] = highByte(chargecurrent);
+    msg.buf[2] = highByte(uint16_t((settings.DischVsetpoint * settings.Scells) * 10));
+    msg.buf[3] = lowByte(uint16_t((settings.DischVsetpoint * settings.Scells) * 10));
+    msg.buf[4] = highByte(discurrent );
+    msg.buf[5] = lowByte(discurrent);
+    msg.buf[6] = highByte(chargecurrent);
+    msg.buf[7] = lowByte(chargecurrent);
     Can0.write(msg);
 
     delay(2);
 
     msg.id  = 0x3D8;
     msg.len = 8;
-    msg.buf[0] = lowByte(SOC * 100);
-    msg.buf[1] = highByte(SOC * 100);
-    msg.buf[2] = lowByte(SOH);
-    msg.buf[3] = highByte(SOH);
-    msg.buf[4] = lowByte(uint16_t(ampsecond * 0.002777778));
-    msg.buf[5] = highByte(uint16_t(ampsecond * 0.002777778));
+    msg.buf[0] = highByte(SOC * 100);
+    msg.buf[1] = lowByte(SOC * 100);
+    msg.buf[2] = highByte(SOH);
+    msg.buf[3] = lowByte(SOH);
+    msg.buf[4] = highByte(uint16_t(ampsecond * 0.002777778));
+    msg.buf[5] = lowByte(uint16_t(ampsecond * 0.002777778));
     msg.buf[6] = 0xF9;
     msg.buf[7] = 0;
     Can0.write(msg);
@@ -1665,10 +1665,10 @@ void VEcan() //communication with Victron system over CAN
 
     msg.id  = 0x518;
     msg.len = 8;
-    msg.buf[0] = lowByte(uint16_t(bms.getHighTemperature() * 10));
-    msg.buf[1] = highByte(uint16_t(bms.getHighTemperature() * 10));
-    msg.buf[2] = lowByte(uint16_t(bms.getLowTemperature() * 10));
-    msg.buf[3] = highByte(uint16_t(bms.getLowTemperature() * 10));
+    msg.buf[0] = highByte(uint16_t(bms.getHighTemperature() * 10));
+    msg.buf[1] = lowByte(uint16_t(bms.getHighTemperature() * 10));
+    msg.buf[2] = highByte(uint16_t(bms.getLowTemperature() * 10));
+    msg.buf[3] = lowByte(uint16_t(bms.getLowTemperature() * 10));
     msg.buf[4] = 0xFF;
     msg.buf[5] = 0xFF;
     msg.buf[6] = 0xFF;
@@ -1680,12 +1680,12 @@ void VEcan() //communication with Victron system over CAN
 
     msg.id  = 0x4D8;
     msg.len = 8;
-    msg.buf[0] = lowByte(uint16_t(bms.getPackVoltage() * 10));
-    msg.buf[1] = highByte(uint16_t(bms.getPackVoltage() * 10));
-    msg.buf[2] = lowByte(long(currentact / 100));
-    msg.buf[3] = highByte(long(currentact / 100));
-    msg.buf[4] = lowByte(int16_t(bms.getAvgTemperature() * 10));
-    msg.buf[5] = highByte(int16_t(bms.getAvgTemperature() * 10));
+    msg.buf[0] = highByte(uint16_t(bms.getPackVoltage() * 10));
+    msg.buf[1] = lowByte(uint16_t(bms.getPackVoltage() * 10));
+    msg.buf[2] = highByte(long(currentact / 100));
+    msg.buf[3] = lowByte(long(currentact / 100));
+    msg.buf[4] = highByte(int16_t(bms.getAvgTemperature() * 10));
+    msg.buf[5] = lowByte(int16_t(bms.getAvgTemperature() * 10));
     msg.buf[6] = 0x03;
     msg.buf[7] = 0x08;
     Can0.write(msg);
