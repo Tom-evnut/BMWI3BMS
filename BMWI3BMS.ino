@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 220420;
+int firmver = 250420;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -275,8 +275,8 @@ uint32_t lastUpdate;
 void setup()
 {
   //delay(4000);  //just for easy debugging. It takes a few seconds for USB to come up properly on most OS's
-  pinMode(ACUR1, INPUT);
-  pinMode(ACUR2, INPUT);
+  //pinMode(ACUR1, INPUT);//Not required for Analogue Pins
+  //pinMode(ACUR2, INPUT);//Not required for Analogue Pins
   pinMode(IN1, INPUT);
   pinMode(IN2, INPUT);
   pinMode(IN3, INPUT);
