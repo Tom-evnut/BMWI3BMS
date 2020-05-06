@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 250420;
+int firmver = 060520;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -316,11 +316,11 @@ void setup()
   //if using enable pins on a transceiver they need to be set on
 
 
-  adc->setAveraging(16); // set number of averages
-  adc->setResolution(16); // set bits of resolution
-  adc->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED);
-  adc->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
-  adc->startContinuous(ACUR1, ADC_0);
+  adc->adc0->setAveraging(16); // set number of averages
+  adc->adc0->setResolution(16); // set bits of resolution
+  adc->adc0->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED);
+  adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED);
+  adc->adc0->startContinuous(ACUR1);
 
 
   SERIALCONSOLE.begin(115200);
@@ -1178,23 +1178,23 @@ void getcurrent()
         }
         SERIALCONSOLE.print("Value ADC0: ");
       }
-      value = (uint16_t)adc->analogReadContinuous(ADC_0); // the unsigned is necessary for 16 bits, otherwise values larger than 3.3/2 V are negative!
+      value = (uint16_t)adc->adc0->analogReadContinuous(); // the unsigned is necessary for 16 bits, otherwise values larger than 3.3/2 V are negative!
       if (debugCur != 0)
       {
-        SERIALCONSOLE.print(value * 3300 / adc->getMaxValue(ADC_0)); //- settings.offset1)
+        SERIALCONSOLE.print(value * 3300 / adc->adc0->getMaxValue()); //- settings.offset1)
         SERIALCONSOLE.print(" ");
         SERIALCONSOLE.print(settings.offset1);
       }
-      RawCur = int16_t((value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1) / (settings.convlow * 0.0001);
+      RawCur = int16_t((value * 3300 / adc->adc0->getMaxValue()) - settings.offset1) / (settings.convlow * 0.0001);
 
-      if (abs((int16_t(value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1)) <  settings.CurDead)
+      if (abs((int16_t(value * 3300 / adc->adc0->getMaxValue()) - settings.offset1)) <  settings.CurDead)
       {
         RawCur = 0;
       }
       if (debugCur != 0)
       {
         SERIALCONSOLE.print("  ");
-        SERIALCONSOLE.print(int16_t(value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset1);
+        SERIALCONSOLE.print(int16_t(value * 3300 / adc->adc0->getMaxValue()) - settings.offset1);
         SERIALCONSOLE.print("  ");
         SERIALCONSOLE.print(RawCur);
         SERIALCONSOLE.print(" mA");
@@ -1209,22 +1209,22 @@ void getcurrent()
         SERIALCONSOLE.print("High Range: ");
         SERIALCONSOLE.print("Value ADC0: ");
       }
-      value = (uint16_t)adc->analogReadContinuous(ADC_0); // the unsigned is necessary for 16 bits, otherwise values larger than 3.3/2 V are negative!
+      value = (uint16_t)adc->adc0->analogReadContinuous(); // the unsigned is necessary for 16 bits, otherwise values larger than 3.3/2 V are negative!
       if (debugCur != 0)
       {
-        SERIALCONSOLE.print(value * 3300 / adc->getMaxValue(ADC_0) );//- settings.offset2)
+        SERIALCONSOLE.print(value * 3300 / adc->adc0->getMaxValue() );//- settings.offset2)
         SERIALCONSOLE.print("  ");
         SERIALCONSOLE.print(settings.offset2);
       }
-      RawCur = int16_t((value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset2) / (settings.convhigh * 0.0001);
-      if (value < 100 || value > (adc->getMaxValue(ADC_0) - 100))
+      RawCur = int16_t((value * 3300 / adc->adc0->getMaxValue()) - settings.offset2) / (settings.convhigh * 0.0001);
+      if (value < 100 || value > (adc->adc0->getMaxValue() - 100))
       {
         RawCur = 0;
       }
       if (debugCur != 0)
       {
         SERIALCONSOLE.print("  ");
-        SERIALCONSOLE.print((float(value * 3300 / adc->getMaxValue(ADC_0)) - settings.offset2));
+        SERIALCONSOLE.print((float(value * 3300 / adc->adc0->getMaxValue()) - settings.offset2));
         SERIALCONSOLE.print("  ");
         SERIALCONSOLE.print(RawCur);
         SERIALCONSOLE.print("mA");
@@ -1521,13 +1521,13 @@ void contcon()
 
 void calcur()
 {
-  adc->startContinuous(ACUR1, ADC_0);
+  adc->adc0->startContinuous(ACUR1);
   sensor = 1;
   x = 0;
   SERIALCONSOLE.print(" Calibrating Current Offset ::::: ");
   while (x < 20)
   {
-    settings.offset1 = settings.offset1 + ((uint16_t)adc->analogReadContinuous(ADC_0) * 3300 / adc->getMaxValue(ADC_0));
+    settings.offset1 = settings.offset1 + ((uint16_t)adc->adc0->analogReadContinuous() * 3300 / adc->adc0->getMaxValue());
     SERIALCONSOLE.print(".");
     delay(100);
     x++;
@@ -1542,7 +1542,7 @@ void calcur()
   SERIALCONSOLE.print(" Calibrating Current Offset ::::: ");
   while (x < 20)
   {
-    settings.offset2 = settings.offset2 + ((uint16_t)adc->analogReadContinuous(ADC_0) * 3300 / adc->getMaxValue(ADC_0));
+    settings.offset2 = settings.offset2 + ((uint16_t)adc->adc0->analogReadContinuous() * 3300 / adc->adc0->getMaxValue());
     SERIALCONSOLE.print(".");
     delay(100);
     x++;
@@ -1559,41 +1559,41 @@ void VEcan() //communication with Victron system over CAN
   {
     msg.id  = 0x618;
     msg.len = 8;
-    msg.buf[0] = bmsname[0];
-    msg.buf[1] = bmsname[1];
-    msg.buf[2] = bmsname[2];
-    msg.buf[3] = bmsname[3];
-    msg.buf[4] = bmsname[4];
-    msg.buf[5] = bmsname[5];
-    msg.buf[6] = bmsname[6];
-    msg.buf[7] = bmsname[7];
+    msg.buf[0] = 0x00;
+    msg.buf[1] = 'B';
+    msg.buf[2] = 'Y';
+    msg.buf[3] = 'D';
+    msg.buf[4] = 0x00;
+    msg.buf[5] = 0x00;
+    msg.buf[6] = 0x00;
+    msg.buf[7] = 0x00;
     Can0.write(msg);
 
     delay(2);
     msg.id  = 0x5D8;
     msg.len = 8;
-    msg.buf[0] = bmsmanu[0];
-    msg.buf[1] = bmsmanu[1];
-    msg.buf[2] = bmsmanu[2];
-    msg.buf[3] = bmsmanu[3];
-    msg.buf[4] = bmsmanu[4];
-    msg.buf[5] = bmsmanu[5];
-    msg.buf[6] = bmsmanu[6];
-    msg.buf[7] = bmsmanu[7];
+    msg.buf[0] = 0x00;
+    msg.buf[1] = 'B';
+    msg.buf[2] = 'Y';
+    msg.buf[3] = 'D';
+    msg.buf[4] = 0x00;
+    msg.buf[5] = 0x00;
+    msg.buf[6] = 0x00;
+    msg.buf[7] = 0x00;
     Can0.write(msg);
 
     delay(2);
 
     msg.id  = 0x558;
     msg.len = 8;
-    msg.buf[0] = 0x00;
-    msg.buf[1] = 0x00;
-    msg.buf[2] = highByte(firmver);
-    msg.buf[3] = lowByte(firmver);
+    msg.buf[0] = 0x03;
+    msg.buf[1] = 0x12;
+    msg.buf[2] = 0x00;
+    msg.buf[3] = 0x04;
     msg.buf[4] = highByte(settings.CAP * settings.Pstrings * 37 * settings.Scells);
     msg.buf[5] = lowByte(settings.CAP * settings.Pstrings * 37 * settings.Scells);
-    msg.buf[6] = 0x00;
-    msg.buf[7] = 0x00;
+    msg.buf[6] = 0x05;
+    msg.buf[7] = 0x07;
     Can0.write(msg);
 
     delay(2);
@@ -1606,8 +1606,8 @@ void VEcan() //communication with Victron system over CAN
     msg.buf[3] = 0x34;
     msg.buf[4] = 0x00;
     msg.buf[5] = 0x00;
-    msg.buf[6] = 0x00;
-    msg.buf[7] = 0x00;
+    msg.buf[6] = 0x04;
+    msg.buf[7] = 0x4F;
     Can0.write(msg);
 
     delay(2);
