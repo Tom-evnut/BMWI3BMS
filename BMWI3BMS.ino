@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 060520;
+int firmver = 80520;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -1138,6 +1138,12 @@ void printbmsstat()
   SERIALCONSOLE.print(digitalRead(IN2));
   SERIALCONSOLE.print(digitalRead(IN3));
   SERIALCONSOLE.print(digitalRead(IN4));
+  /*
+  SERIALCONSOLE.print(" | ");
+  SERIALCONSOLE.print(bms.getLowTemperature());
+  SERIALCONSOLE.print(" | ");
+  SERIALCONSOLE.print(bms.getHighTemperature());
+  */
 }
 
 

@@ -329,17 +329,23 @@ float BMSModule::getLowTemp()
   {
     return (temperatures[0]);
   }
-  if (temperatures[1] < temperatures[0] && temperatures[1] < temperatures[2] && temperatures[1] < temperatures[3])
+  else
   {
-    return (temperatures[1]);
-  }
-  if (temperatures[2] < temperatures[0] && temperatures[2] < temperatures[1] && temperatures[2] < temperatures[3])
-  {
-    return (temperatures[2]);
-  }
-  if (temperatures[3] < temperatures[1] && temperatures[3] < temperatures[2] && temperatures[3] < temperatures[0])
-  {
-    return (temperatures[3]);
+    if (temperatures[1] < temperatures[2] && temperatures[1] < temperatures[3])
+    {
+      return (temperatures[1]);
+    }
+    else
+    {
+      if (temperatures[2] < temperatures[3])
+      {
+        return (temperatures[2]);
+      }
+      else
+      {
+        return (temperatures[3]);
+      }
+    }
   }
 }
 
@@ -349,17 +355,25 @@ float BMSModule::getHighTemp()
   {
     return (temperatures[0]);
   }
-  if (temperatures[1] > temperatures[0] && temperatures[1] > temperatures[2] && temperatures[1] > temperatures[3])
+  else
   {
-    return (temperatures[1]);
-  }
-  if (temperatures[2] > temperatures[0] && temperatures[2] > temperatures[1] && temperatures[2] > temperatures[3])
-  {
-    return (temperatures[2]);
-  }
-  if (temperatures[3] > temperatures[1] && temperatures[3] > temperatures[2] && temperatures[3] > temperatures[0])
-  {
-    return (temperatures[3]);
+    if (temperatures[1] > temperatures[2] && temperatures[1] > temperatures[3])
+    {
+      return (temperatures[1]);
+
+    }
+    else
+    {
+      if (temperatures[2] > temperatures[3])
+      {
+        return (temperatures[2]);
+
+      }
+      else
+      {
+        return (temperatures[3]);
+      }
+    }
   }
 }
 
