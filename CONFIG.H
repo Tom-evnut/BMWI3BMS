@@ -93,5 +93,6 @@ typedef struct {
   float DisTaper;
    bool ChargerDirect;
    uint8_t tripcont;
+   uint8_t CSCvariant;
    
 } EEPROMSettings;

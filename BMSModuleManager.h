@@ -41,7 +41,7 @@ public:
     */
     void printAllCSV(unsigned long timestamp,float current, int SOC);
     void printPackSummary();
-    void printPackDetails(int digits);
+    void printPackDetails(int digits,int CSCvariant);
 
 
 

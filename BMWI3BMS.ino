@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 80520;
+int firmver = 90520;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -90,6 +90,10 @@ byte bmsstatus = 0;
 #define HVSBS 5
 //
 
+//CSC Variants
+#define BmwI3 0
+#define MiniE 1
+//
 
 
 int Discharge;
@@ -197,7 +201,7 @@ uint8_t testcycle = 0;
 
 CRC8 crc8;
 uint8_t checksum;
-const uint8_t finalxor [8] = {0xCF, 0xF5, 0xBB, 0x81, 0x27, 0x1D, 0x53, 0x69};
+const uint8_t finalxor [12] = {0xCF, 0xF5, 0xBB, 0x81, 0x27, 0x1D, 0x53, 0x69, 0x02, 0x38, 0x76, 0x4C};
 
 
 
@@ -262,6 +266,7 @@ void loadSettings()
   settings.CurDead = 5;// mV of dead band on current sensor
   settings.ChargerDirect = 1; //1 - charger is always connected to HV battery // 0 - Charger is behind the contactors
   settings.tripcont = 1; //in ESSmode 1 - Main contactor function, 0 - Trip function
+  settings.CSCvariant = 0; //0 BMW I3 - 1 Mini-E
 }
 
 
@@ -816,7 +821,7 @@ void loop()
     if (debug != 0)
     {
       printbmsstat();
-      bms.printPackDetails(debugdigits);
+      bms.printPackDetails(debugdigits, settings.CSCvariant);
     }
     if (CSVdebug != 0)
     {
@@ -1139,10 +1144,10 @@ void printbmsstat()
   SERIALCONSOLE.print(digitalRead(IN3));
   SERIALCONSOLE.print(digitalRead(IN4));
   /*
-  SERIALCONSOLE.print(" | ");
-  SERIALCONSOLE.print(bms.getLowTemperature());
-  SERIALCONSOLE.print(" | ");
-  SERIALCONSOLE.print(bms.getHighTemperature());
+    SERIALCONSOLE.print(" | ");
+    SERIALCONSOLE.print(bms.getLowTemperature());
+    SERIALCONSOLE.print(" | ");
+    SERIALCONSOLE.print(bms.getHighTemperature());
   */
 }
 
@@ -2516,6 +2521,17 @@ void menu()
         }
         break;
 
+
+      case 'x': //Discharge Voltage hysteresis
+        settings.CSCvariant ++;
+        if (settings.CSCvariant > 1)
+        {
+          settings.CSCvariant = 0;
+        }
+        menuload = 1;
+        incomingByte = 'b';
+        break;
+
       case '9': //Discharge Voltage Setpoint
         if (Serial.available() > 0)
         {
@@ -2967,6 +2983,20 @@ void menu()
         SERIALCONSOLE.print(settings.DischHys * 1000, 0);
         SERIALCONSOLE.print("mV");
 
+        SERIALCONSOLE.print("x - CSC Variant Used: ");
+        if ( settings.CSCvariant == BmwI3)
+        {
+          SERIALCONSOLE.print("Bmw I3");
+        }
+        if ( settings.CSCvariant == MiniE)
+        {
+          SERIALCONSOLE.print("Mini-E");
+        }
+
+        SERIALCONSOLE.println("  ");
+
+
+
         SERIALCONSOLE.println();
         menuload = 3;
         break;
@@ -3292,14 +3322,30 @@ void sendcommand() //Send Can Command to get data from slaves
   {
     balancecells = 0;
   }
-  if (nextmes == 8)
+
+  if (settings.CSCvariant == BmwI3)
   {
-    nextmes = 0;
-    if (testcycle < 4)
+    if (nextmes == 8)
     {
-      testcycle++;
+      nextmes = 0;
+      if (testcycle < 4)
+      {
+        testcycle++;
+      }
     }
   }
+  if (settings.CSCvariant == MiniE)
+  {
+    if (nextmes == 0xC)
+    {
+      nextmes = 0;
+      if (testcycle < 4)
+      {
+        testcycle++;
+      }
+    }
+  }
+
   msg.id  = 0x080 | (nextmes);
   msg.len = 8;
   if (balancecells == 1)

@@ -51,15 +51,7 @@ void SerialConsole::init() {
 }
 
 void SerialConsole::loop() {  
-    if (SERIALCONSOLE.available()) {
-        serialEvent();
-    }
-    if (printPrettyDisplay && (millis() > (prettyCounter + 3000)))
-    {
-        prettyCounter = millis();
-        if (whichDisplay == 0) bms.printPackSummary();
-        if (whichDisplay == 1) bms.printPackDetails(2);
-    }
+   
 }
               
 void SerialConsole::printMenu() {   

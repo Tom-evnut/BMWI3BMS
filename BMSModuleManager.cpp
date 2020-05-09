@@ -410,7 +410,7 @@ void BMSModuleManager::printPackSummary()
   }
 }
 
-void BMSModuleManager::printPackDetails(int digits)
+void BMSModuleManager::printPackDetails(int digits, int CSCvariant)
 {
   uint8_t faults;
   uint8_t alerts;
@@ -439,6 +439,8 @@ void BMSModuleManager::printPackDetails(int digits)
       SERIALCONSOLE.print("  ");
       SERIALCONSOLE.print(modules[y].getModuleVoltage(), digits);
       SERIALCONSOLE.print("V");
+      if (CSCvariant == 0)
+      {
       for (int i = 0; i < 12; i++)
       {
         if (cellNum < 10) SERIALCONSOLE.print(" ");
@@ -461,7 +463,30 @@ void BMSModuleManager::printPackDetails(int digits)
       SERIALCONSOLE.print(modules[y].getError(), HEX);
       SERIALCONSOLE.print(" Bal: 0x");
       SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
-
+      }
+           if (CSCvariant == 1)
+      {
+      for (int i = 0; i < 8; i++)
+      {
+        if (cellNum < 10) SERIALCONSOLE.print(" ");
+        SERIALCONSOLE.print("  Cell");
+        SERIALCONSOLE.print(cellNum++);
+        SERIALCONSOLE.print(": ");
+        SERIALCONSOLE.print(modules[y].getCellVoltage(i), digits);
+        SERIALCONSOLE.print("V");
+      }
+      SERIALCONSOLE.println();
+      SERIALCONSOLE.print(" Temp 1: ");
+      SERIALCONSOLE.print(modules[y].getTemperature(0));
+      SERIALCONSOLE.print("C Temp 2: ");
+      SERIALCONSOLE.print(modules[y].getTemperature(1));
+      SERIALCONSOLE.print("C Temp 3: ");
+      SERIALCONSOLE.print(modules[y].getTemperature(2));
+      SERIALCONSOLE.print("C Status: 0x");
+      SERIALCONSOLE.print(modules[y].getError(), HEX);
+      SERIALCONSOLE.print(" Bal: 0x");
+      SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
+      } 
 
     }
   }
