@@ -2982,6 +2982,7 @@ void menu()
         SERIALCONSOLE.print("k - Cell Discharge Voltage Hysteresis: ");
         SERIALCONSOLE.print(settings.DischHys * 1000, 0);
         SERIALCONSOLE.print("mV");
+        SERIALCONSOLE.println("  ");
 
         SERIALCONSOLE.print("x - CSC Variant Used: ");
         if ( settings.CSCvariant == BmwI3)
