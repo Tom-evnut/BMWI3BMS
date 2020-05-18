@@ -51,7 +51,7 @@ bool BMSModuleManager::checkstatus()
   {
     if (modules[y].isExisting())
     {
-      if(modules[y].getError() & 0x2000 >= 0)
+      if (modules[y].getError() & 0x2000 >= 0)
       {
         return true;
       }
@@ -86,10 +86,10 @@ void BMSModuleManager::clearmodules()
   }
 }
 
-void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug)
+void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug, int CSC)
 {
   int CMU = (msg.id & 0x00F) + 1;
-  modules[CMU].decodetemp(msg);
+  modules[CMU].decodetemp(msg, CSC);
   if (debug == 1 && CMU > 0)
   {
     Serial.println();
@@ -261,7 +261,7 @@ float BMSModuleManager::getAvgTemperature()
         if (modules[x].getLowTemp() < lowTemp)
         {
           lowTemp = modules[x].getLowTemp();
-         
+
         }
       }
       else
@@ -441,52 +441,50 @@ void BMSModuleManager::printPackDetails(int digits, int CSCvariant)
       SERIALCONSOLE.print("V");
       if (CSCvariant == 0)
       {
-      for (int i = 0; i < 12; i++)
-      {
-        if (cellNum < 10) SERIALCONSOLE.print(" ");
-        SERIALCONSOLE.print("  Cell");
-        SERIALCONSOLE.print(cellNum++);
-        SERIALCONSOLE.print(": ");
-        SERIALCONSOLE.print(modules[y].getCellVoltage(i), digits);
-        SERIALCONSOLE.print("V");
+        for (int i = 0; i < 12; i++)
+        {
+          if (cellNum < 10) SERIALCONSOLE.print(" ");
+          SERIALCONSOLE.print("  Cell");
+          SERIALCONSOLE.print(cellNum++);
+          SERIALCONSOLE.print(": ");
+          SERIALCONSOLE.print(modules[y].getCellVoltage(i), digits);
+          SERIALCONSOLE.print("V");
+        }
+        SERIALCONSOLE.println();
+        SERIALCONSOLE.print(" Temp 1: ");
+        SERIALCONSOLE.print(modules[y].getTemperature(0));
+        SERIALCONSOLE.print("C Temp 2: ");
+        SERIALCONSOLE.print(modules[y].getTemperature(1));
+        SERIALCONSOLE.print("C Temp 3: ");
+        SERIALCONSOLE.print(modules[y].getTemperature(2));
+        SERIALCONSOLE.print("C Temp 4: ");
+        SERIALCONSOLE.print(modules[y].getTemperature(3));
+        SERIALCONSOLE.print("C Status: 0x");
+        SERIALCONSOLE.print(modules[y].getError(), HEX);
+        SERIALCONSOLE.print(" Bal: 0x");
+        SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
       }
-      SERIALCONSOLE.println();
-      SERIALCONSOLE.print(" Temp 1: ");
-      SERIALCONSOLE.print(modules[y].getTemperature(0));
-      SERIALCONSOLE.print("C Temp 2: ");
-      SERIALCONSOLE.print(modules[y].getTemperature(1));
-      SERIALCONSOLE.print("C Temp 3: ");
-      SERIALCONSOLE.print(modules[y].getTemperature(2));
-      SERIALCONSOLE.print("C Temp 4: ");
-      SERIALCONSOLE.print(modules[y].getTemperature(3));
-      SERIALCONSOLE.print("C Status: 0x");
-      SERIALCONSOLE.print(modules[y].getError(), HEX);
-      SERIALCONSOLE.print(" Bal: 0x");
-      SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
-      }
-           if (CSCvariant == 1)
+      if (CSCvariant == 1)
       {
-      for (int i = 0; i < 8; i++)
-      {
-        if (cellNum < 10) SERIALCONSOLE.print(" ");
-        SERIALCONSOLE.print("  Cell");
-        SERIALCONSOLE.print(cellNum++);
-        SERIALCONSOLE.print(": ");
-        SERIALCONSOLE.print(modules[y].getCellVoltage(i), digits);
-        SERIALCONSOLE.print("V");
+        for (int i = 0; i < 8; i++)
+        {
+          if (cellNum < 10) SERIALCONSOLE.print(" ");
+          SERIALCONSOLE.print("  Cell");
+          SERIALCONSOLE.print(cellNum++);
+          SERIALCONSOLE.print(": ");
+          SERIALCONSOLE.print(modules[y].getCellVoltage(i), digits);
+          SERIALCONSOLE.print("V");
+        }
+        SERIALCONSOLE.println();
+        SERIALCONSOLE.print(" Temp 1: ");
+        SERIALCONSOLE.print(modules[y].getTemperature(0));
+        SERIALCONSOLE.print("C Temp 2: ");
+        SERIALCONSOLE.print(modules[y].getTemperature(1));
+        SERIALCONSOLE.print("C Status: 0x");
+        SERIALCONSOLE.print(modules[y].getError(), HEX);
+        SERIALCONSOLE.print(" Bal: 0x");
+        SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
       }
-      SERIALCONSOLE.println();
-      SERIALCONSOLE.print(" Temp 1: ");
-      SERIALCONSOLE.print(modules[y].getTemperature(0));
-      SERIALCONSOLE.print("C Temp 2: ");
-      SERIALCONSOLE.print(modules[y].getTemperature(1));
-      SERIALCONSOLE.print("C Temp 3: ");
-      SERIALCONSOLE.print(modules[y].getTemperature(2));
-      SERIALCONSOLE.print("C Status: 0x");
-      SERIALCONSOLE.print(modules[y].getError(), HEX);
-      SERIALCONSOLE.print(" Bal: 0x");
-      SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
-      } 
 
     }
   }

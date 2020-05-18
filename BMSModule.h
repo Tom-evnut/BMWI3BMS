@@ -6,7 +6,7 @@ class BMSModule
   public:
     BMSModule();
     void decodecan(int Id, CAN_message_t &msg);
-    void decodetemp(CAN_message_t &msg);
+    void decodetemp(CAN_message_t &msg, int CSC);
     void clearmodule();
     void readStatus();
     int getscells();
@@ -64,4 +64,5 @@ class BMSModule
     int scells;
     int balstat;
     uint32_t error;
+    int variant;
 };

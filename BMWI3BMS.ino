@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 90520;
+int firmver = 180520;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3052,13 +3052,13 @@ void canread()
   }
   if ((inMsg.id & 0xFF0) == 0x170)    // Determine if ID is standard (11 bits) or extended (29 bits)
   {
-    if (candebug == 1)
+    if (candebug == 1 && debug == 1)
     {
-      bms.decodetemp(inMsg, 1 && debug == 1);
+      bms.decodetemp(inMsg, 1 , settings.CSCvariant);
     }
     else
     {
-      bms.decodetemp(inMsg, 0);
+      bms.decodetemp(inMsg, 0, settings.CSCvariant);
     }
   }
   if (debug == 1)
