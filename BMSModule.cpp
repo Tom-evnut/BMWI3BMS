@@ -46,19 +46,14 @@ void BMSModule::clearmodule()
 
 void BMSModule::decodetemp(CAN_message_t &msg, int CSC)
 {
-  if (CSC == 0)
+  for (int g = 0; g < 4; g++)
   {
-    for (int g = 0; g < 4; g++)
+    temperatures[g] = msg.buf[g] - 40;
+    if (temperatures[g] > -40 && CSC == 1)
     {
-      temperatures[g] = msg.buf[g] - 40;
+      temperatures[g] = temperatures[g] - 55;
     }
   }
-  else
-  {
-    temperatures[0] = msg.buf[0] - 40 - 55;
-    temperatures[1] = msg.buf[2] - 40 - 55;
-  }
-  variant = CSC;
 }
 
 void BMSModule::decodecan(int Id, CAN_message_t &msg)
@@ -335,33 +330,43 @@ float BMSModule::getLowestTemp()
 
 float BMSModule::getLowTemp()
 {
-  if ( variant == 0)
+  float templow = 9999;
+  for (int g = 0; g < 4; g++)
   {
-    if (temperatures[0] < temperatures[1] && temperatures[0] < temperatures[2] && temperatures[0] < temperatures[3])
+    if (temperatures[g] < templow && temperatures[g] > -40)
     {
-      return (temperatures[0]);
+      templow = temperatures[g];
     }
-    else
-    {
-      if (temperatures[1] < temperatures[2] && temperatures[1] < temperatures[3])
+  }
+  return (templow);
+
+  /*
+      if (temperatures[0] < temperatures[1] && temperatures[0] < temperatures[2] && temperatures[0] < temperatures[3])
       {
-        return (temperatures[1]);
+        return (temperatures[0]);
       }
       else
       {
-        if (temperatures[2] < temperatures[3])
+        if (temperatures[1] < temperatures[2] && temperatures[1] < temperatures[3])
         {
-          return (temperatures[2]);
+          return (temperatures[1]);
         }
         else
         {
-          return (temperatures[3]);
+          if (temperatures[2] < temperatures[3])
+          {
+            return (temperatures[2]);
+          }
+          else
+          {
+            return (temperatures[3]);
+          }
         }
       }
     }
-  }
-  else
-  {
+
+    else
+    {
     if (temperatures[0] < temperatures[1])
     {
       return (temperatures[0]);
@@ -370,13 +375,22 @@ float BMSModule::getLowTemp()
     {
       return (temperatures[1]);
     }
-  }
+    }
+  */
 }
 
 float BMSModule::getHighTemp()
 {
-  if ( variant == 0)
+  float temphigh = -39;
+  for (int g = 0; g < 4; g++)
   {
+    if (temperatures[g] > temphigh && temperatures[g] > -40)
+    {
+      temphigh = temperatures[g];
+    }
+  }
+  return (temphigh);
+  /*
     if (temperatures[0] > temperatures[1] && temperatures[0] > temperatures[2] && temperatures[0] > temperatures[3])
     {
       return (temperatures[0]);
@@ -401,9 +415,9 @@ float BMSModule::getHighTemp()
         }
       }
     }
-  }
-  else
-  {
+
+    else
+    {
     if (temperatures[0] > temperatures[1])
     {
       return (temperatures[0]);
@@ -412,24 +426,24 @@ float BMSModule::getHighTemp()
     {
       return (temperatures[1]);
     }
-  }
+    }
+  */
 }
 
 float BMSModule::getAvgTemp()
 {
   float avgtemp = 0;
-  if (variant == 0)
+  int num = 0;
+  for (int g = 0; g < 4; g++)
   {
-    avgtemp = temperatures[0] + temperatures[1] + temperatures[2] + temperatures[3];
-    avgtemp = avgtemp * 0.25;
-    return (avgtemp);
+    if (temperatures[g] > -40)
+    {
+      avgtemp = avgtemp + temperatures[g];
+      num++;
+    }
   }
-  else
-  {
-    avgtemp = temperatures[0] + temperatures[1];
-    avgtemp = avgtemp * 0.5;
-    return (avgtemp);
-  }
+  avgtemp = avgtemp / (float)(num);
+  return (avgtemp);
 }
 
 float BMSModule::getModuleVoltage()

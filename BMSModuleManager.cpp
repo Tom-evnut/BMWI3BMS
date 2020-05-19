@@ -450,19 +450,6 @@ void BMSModuleManager::printPackDetails(int digits, int CSCvariant)
           SERIALCONSOLE.print(modules[y].getCellVoltage(i), digits);
           SERIALCONSOLE.print("V");
         }
-        SERIALCONSOLE.println();
-        SERIALCONSOLE.print(" Temp 1: ");
-        SERIALCONSOLE.print(modules[y].getTemperature(0));
-        SERIALCONSOLE.print("C Temp 2: ");
-        SERIALCONSOLE.print(modules[y].getTemperature(1));
-        SERIALCONSOLE.print("C Temp 3: ");
-        SERIALCONSOLE.print(modules[y].getTemperature(2));
-        SERIALCONSOLE.print("C Temp 4: ");
-        SERIALCONSOLE.print(modules[y].getTemperature(3));
-        SERIALCONSOLE.print("C Status: 0x");
-        SERIALCONSOLE.print(modules[y].getError(), HEX);
-        SERIALCONSOLE.print(" Bal: 0x");
-        SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
       }
       if (CSCvariant == 1)
       {
@@ -475,16 +462,32 @@ void BMSModuleManager::printPackDetails(int digits, int CSCvariant)
           SERIALCONSOLE.print(modules[y].getCellVoltage(i), digits);
           SERIALCONSOLE.print("V");
         }
-        SERIALCONSOLE.println();
+      }
+      SERIALCONSOLE.println();
+      if ( modules[y].getTemperature(0) > -40)
+      {
         SERIALCONSOLE.print(" Temp 1: ");
         SERIALCONSOLE.print(modules[y].getTemperature(0));
+      }
+      if ( modules[y].getTemperature(1) > -40)
+      {
         SERIALCONSOLE.print("C Temp 2: ");
         SERIALCONSOLE.print(modules[y].getTemperature(1));
-        SERIALCONSOLE.print("C Status: 0x");
-        SERIALCONSOLE.print(modules[y].getError(), HEX);
-        SERIALCONSOLE.print(" Bal: 0x");
-        SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
       }
+      if ( modules[y].getTemperature(2) > -40)
+      {
+        SERIALCONSOLE.print("C Temp 3: ");
+        SERIALCONSOLE.print(modules[y].getTemperature(2));
+      }
+      if ( modules[y].getTemperature(3) > -40)
+      {
+        SERIALCONSOLE.print("C Temp 4: ");
+        SERIALCONSOLE.print(modules[y].getTemperature(3));
+      }
+      SERIALCONSOLE.print("C Status: 0x");
+      SERIALCONSOLE.print(modules[y].getError(), HEX);
+      SERIALCONSOLE.print(" Bal: 0x");
+      SERIALCONSOLE.println(modules[y].getbalstat(), HEX);
 
     }
   }
