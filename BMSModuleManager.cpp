@@ -86,6 +86,11 @@ void BMSModuleManager::clearmodules()
   }
 }
 
+int BMSModuleManager::getNumModules()
+{
+  return numFoundModules;
+}
+
 void BMSModuleManager::decodetemp(CAN_message_t &msg, int debug, int CSC)
 {
   int CMU = (msg.id & 0x00F) + 1;
