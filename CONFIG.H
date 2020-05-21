@@ -94,5 +94,5 @@ typedef struct {
    bool ChargerDirect;
    uint8_t tripcont;
    uint8_t CSCvariant;
-   
+   int16_t TempOff;
 } EEPROMSettings;

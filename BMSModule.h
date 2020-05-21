@@ -40,6 +40,7 @@ class BMSModule
     void setReset(bool ex);
     void settempsensor(int tempsensor);
     void setIgnoreCell(float Ignore);
+    void setTempOff( int16_t tempoff);
 
 
   private:
@@ -65,4 +66,5 @@ class BMSModule
     int balstat;
     uint32_t error;
     int variant;
+    int16_t TempOff;
 };

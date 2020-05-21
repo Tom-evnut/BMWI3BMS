@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 200520;
+int firmver = 210520;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -267,6 +267,7 @@ void loadSettings()
   settings.ChargerDirect = 1; //1 - charger is always connected to HV battery // 0 - Charger is behind the contactors
   settings.tripcont = 1; //in ESSmode 1 - Main contactor function, 0 - Trip function
   settings.CSCvariant = 0; //0 BMW I3 - 1 Mini-E
+  settings.TempOff = 0; //Temperature offset
 }
 
 
@@ -388,7 +389,7 @@ void setup()
   crc8.begin();
   digitalWrite(led, HIGH);
   bms.setPstrings(settings.Pstrings);
-  bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt);
+  bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt, settings.TempOff);
 
   ////Calculate fixed numbers
   pwmcurmin = (pwmcurmid / 50 * pwmcurmax * -1);
@@ -848,7 +849,7 @@ void loop()
     if (cellspresent == 0 && millis() > 3000)
     {
       cellspresent = bms.seriescells();//set amount of connected cells, might need delay
-      bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt);
+      bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt, settings.TempOff);
     }
     else
     {
@@ -1305,7 +1306,7 @@ void updateSOC()
   {
     if (millis() > 9000)
     {
-      bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt);
+      bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt, settings.TempOff);
     }
     if (millis() > 10000)
     {
@@ -2180,7 +2181,7 @@ void menu()
         {
           settings.IgnoreTemp = 0;
         }
-        bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt);
+        bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt, settings.TempOff);
         menuload = 1;
         incomingByte = 'i';
         break;
@@ -2190,7 +2191,18 @@ void menu()
         {
           settings.IgnoreVolt = Serial.parseInt();
           settings.IgnoreVolt = settings.IgnoreVolt * 0.001;
-          bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt);
+          bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt, settings.TempOff);
+          // Serial.println(settings.IgnoreVolt);
+          menuload = 1;
+          incomingByte = 'i';
+        }
+        break;
+
+      case '4':
+        if (Serial.available() > 0)
+        {
+          settings.TempOff = Serial.parseInt();
+          bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt, settings.TempOff);
           // Serial.println(settings.IgnoreVolt);
           menuload = 1;
           incomingByte = 'i';
@@ -2654,6 +2666,8 @@ void menu()
         SERIALCONSOLE.print("2 - Voltage Under Which To Ignore Cells:");
         SERIALCONSOLE.print(settings.IgnoreVolt * 1000, 0);
         SERIALCONSOLE.println("mV");
+        SERIALCONSOLE.print("4 - Temp Offset Setting:");
+        SERIALCONSOLE.println(settings.TempOff);
         SERIALCONSOLE.println("q - Go back to menu");
         menuload = 8;
         break;

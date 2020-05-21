@@ -49,9 +49,9 @@ void BMSModule::decodetemp(CAN_message_t &msg, int CSC)
   for (int g = 0; g < 4; g++)
   {
     temperatures[g] = msg.buf[g] - 40;
-    if (temperatures[g] > -40 && CSC == 1)
+    if (temperatures[g] > -40)
     {
-      temperatures[g] = temperatures[g] - 55;
+      temperatures[g] = temperatures[g] + TempOff;
     }
   }
 }
@@ -510,9 +510,15 @@ void BMSModule::setReset(bool ex)
 void BMSModule::setIgnoreCell(float Ignore)
 {
   IgnoreCell = Ignore;
-  Serial.println();
-  Serial.println();
-  Serial.println(Ignore);
-  Serial.println();
+  /*
+    Serial.println();
+    Serial.println();
+    Serial.println(Ignore);
+    Serial.println();
+  */
+}
 
+void  BMSModule::setTempOff( int16_t tempoff)
+{
+  TempOff = tempoff;
 }
