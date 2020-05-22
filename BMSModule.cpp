@@ -330,57 +330,30 @@ float BMSModule::getLowestTemp()
 
 float BMSModule::getLowTemp()
 {
-  float templow = 9999;
-  for (int g = 0; g < 4; g++)
-  {
+  /*
+    float templow = 9999;
+    for (int g = 0; g < 4; g++)
+    {
     if (temperatures[g] < templow && temperatures[g] > -40)
     {
       templow = temperatures[g];
     }
-  }
-  return (templow);
-
-  /*
-      if (temperatures[0] < temperatures[1] && temperatures[0] < temperatures[2] && temperatures[0] < temperatures[3])
-      {
-        return (temperatures[0]);
-      }
-      else
-      {
-        if (temperatures[1] < temperatures[2] && temperatures[1] < temperatures[3])
-        {
-          return (temperatures[1]);
-        }
-        else
-        {
-          if (temperatures[2] < temperatures[3])
-          {
-            return (temperatures[2]);
-          }
-          else
-          {
-            return (temperatures[3]);
-          }
-        }
-      }
     }
-
-    else
-    {
-    if (temperatures[0] < temperatures[1])
-    {
-      return (temperatures[0]);
-    }
-    else
-    {
-      return (temperatures[1]);
-    }
-    }
+    return (templow);
   */
+  if (temperatures[0] < temperatures[1] )
+  {
+    return (temperatures[0]);
+  }
+  else
+  {
+    return (temperatures[1]);
+  }
 }
 
 float BMSModule::getHighTemp()
 {
+  /*
   float temphigh = -39;
   for (int g = 0; g < 4; g++)
   {
@@ -390,51 +363,23 @@ float BMSModule::getHighTemp()
     }
   }
   return (temphigh);
-  /*
-    if (temperatures[0] > temperatures[1] && temperatures[0] > temperatures[2] && temperatures[0] > temperatures[3])
-    {
-      return (temperatures[0]);
-    }
-    else
-    {
-      if (temperatures[1] > temperatures[2] && temperatures[1] > temperatures[3])
-      {
-        return (temperatures[1]);
-
-      }
-      else
-      {
-        if (temperatures[2] > temperatures[3])
-        {
-          return (temperatures[2]);
-
-        }
-        else
-        {
-          return (temperatures[3]);
-        }
-      }
-    }
-
-    else
-    {
+  */
+  
     if (temperatures[0] > temperatures[1])
     {
       return (temperatures[0]);
     }
     else
     {
-      return (temperatures[1]);
+        return (temperatures[1]);
     }
-    }
-  */
 }
 
 float BMSModule::getAvgTemp()
 {
   float avgtemp = 0;
   int num = 0;
-  for (int g = 0; g < 4; g++)
+  for (int g = 0; g < 2; g++)
   {
     if (temperatures[g] > -40)
     {
