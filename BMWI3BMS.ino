@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 220520;
+int firmver = 290520;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -844,6 +844,10 @@ void loop()
 
     updateSOC();
     currentlimit();
+    if (SOCset != 0)
+    {
+      alarmupdate();
+    }
     VEcan();
 
     if (cellspresent == 0 && millis() > 3000)
@@ -865,7 +869,7 @@ void loop()
         ErrorReason = 3;
       }
     }
-    alarmupdate();
+
     if (CSVdebug != 1)
     {
       dashupdate();
@@ -3182,9 +3186,9 @@ void currentlimit()
     {
       //Temperature based///
 
-      if (bms.getLowTemperature() > settings.DisTSetpoint)
+      if (bms.getHighTemperature() > settings.DisTSetpoint)
       {
-        discurrent = discurrent - map(bms.getLowTemperature(), settings.DisTSetpoint, settings.OverTSetpoint, 0, settings.discurrentmax);
+        discurrent = discurrent - map(bms.getHighTemperature(), settings.DisTSetpoint, settings.OverTSetpoint, 0, settings.discurrentmax);
       }
       //Voltagee based///
       if (bms.getLowCellVolt() > settings.UnderVSetpoint || bms.getLowCellVolt() > settings.DischVsetpoint)
@@ -3201,9 +3205,9 @@ void currentlimit()
     if (chargecurrent > 0)
     {
       //Temperature based///
-      if (bms.getHighTemperature() < settings.ChargeTSetpoint)
+      if (bms.getLowTemperature() < settings.ChargeTSetpoint)
       {
-        chargecurrent = chargecurrent - map(bms.getHighTemperature(), settings.UnderTSetpoint, settings.ChargeTSetpoint, settings.chargecurrentmax, 0);
+        chargecurrent = chargecurrent - map(bms.getLowTemperature(), settings.UnderTSetpoint, settings.ChargeTSetpoint, settings.chargecurrentmax, 0);
       }
       //Voltagee based///
       if (storagemode == 1)
@@ -3217,7 +3221,7 @@ void currentlimit()
       {
         if (bms.getHighCellVolt() > (settings.ChargeVsetpoint - settings.ChargeHys))
         {
-          chargecurrent = chargecurrent - map(bms.getHighCellVolt(), (settings.ChargeVsetpoint - settings.ChargeHys), settings.ChargeVsetpoint, settings.chargecurrentend, settings.chargecurrentmax);
+          chargecurrent = chargecurrent - map(bms.getHighCellVolt(), (settings.ChargeVsetpoint - settings.ChargeHys), settings.ChargeVsetpoint, 0, (settings.chargecurrentmax - settings.chargecurrentend));
         }
       }
     }
