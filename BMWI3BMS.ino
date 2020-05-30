@@ -2497,6 +2497,16 @@ void menu()
           incomingByte = 'b';
         }
 
+
+      case 'j':
+        if (Serial.available() > 0)
+        {
+          settings.DisTSetpoint = Serial.parseInt();
+          menuload = 1;
+          incomingByte = 'b';
+        }
+        break;
+
       case 'b':
         if (Serial.available() > 0)
         {
@@ -3004,6 +3014,10 @@ void menu()
         SERIALCONSOLE.print(settings.DisTaper * 1000, 0 );
         SERIALCONSOLE.print("mV");
         SERIALCONSOLE.println("  ");
+        SERIALCONSOLE.print("j - Discharge Current Temperature Derate : ");
+        SERIALCONSOLE.print(settings.DisTSetpoint);
+        SERIALCONSOLE.print("C");
+        SERIALCONSOLE.println("");
         SERIALCONSOLE.print("k - Cell Discharge Voltage Hysteresis: ");
         SERIALCONSOLE.print(settings.DischHys * 1000, 0);
         SERIALCONSOLE.print("mV");
