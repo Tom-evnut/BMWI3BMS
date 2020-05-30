@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 290520;
+int firmver = 300520;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -1154,6 +1154,12 @@ void printbmsstat()
     SERIALCONSOLE.print(" | ");
     SERIALCONSOLE.print(bms.getHighTemperature());
   */
+
+  SERIALCONSOLE.print(" Charge Current Limit : ");
+  SERIALCONSOLE.print(chargecurrent * 0.1, 0);
+  SERIALCONSOLE.print(" A DisCharge Current Limit : ");
+  SERIALCONSOLE.print(discurrent * 0.1, 0);
+  SERIALCONSOLE.print(" A");
 }
 
 
@@ -3191,14 +3197,10 @@ void currentlimit()
         discurrent = discurrent - map(bms.getHighTemperature(), settings.DisTSetpoint, settings.OverTSetpoint, 0, settings.discurrentmax);
       }
       //Voltagee based///
-      if (bms.getLowCellVolt() > settings.UnderVSetpoint || bms.getLowCellVolt() > settings.DischVsetpoint)
+      if (bms.getLowCellVolt() < (settings.DischVsetpoint + settings.DisTaper))
       {
-        if (bms.getLowCellVolt() < (settings.DischVsetpoint + settings.DisTaper))
-        {
-          discurrent = discurrent - map(bms.getLowCellVolt(), settings.DischVsetpoint, (settings.DischVsetpoint + settings.DisTaper), settings.discurrentmax, 0);
-        }
+        discurrent = discurrent - map(bms.getLowCellVolt(), settings.DischVsetpoint, (settings.DischVsetpoint + settings.DisTaper), settings.discurrentmax, 0);
       }
-
     }
 
     //Modifying Charge current///
