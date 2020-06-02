@@ -56,7 +56,7 @@ void BMSModule::decodetemp(CAN_message_t &msg, int CSC)
   }
 }
 
-void BMSModule::decodecan(int Id, CAN_message_t &msg)
+void BMSModule::decodecan(int Id, CAN_message_t &msg, bool Ign)
 {
   switch (Id)
   {
@@ -66,7 +66,7 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg)
       break;
 
     case 1:
-      if (balstat == 0)
+      if (balstat == 0 && Ign == 0)
       {
         cellVolt[0] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
         cellVolt[1] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
@@ -75,7 +75,7 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg)
       break;
 
     case 2:
-      if (balstat == 0)
+      if (balstat == 0 && Ign == 0)
       {
         cellVolt[3] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
         cellVolt[4] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
@@ -84,7 +84,7 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg)
       break;
 
     case 3:
-      if (balstat == 0)
+      if (balstat == 0 && Ign == 0)
       {
         cellVolt[6] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
         cellVolt[7] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
@@ -93,7 +93,7 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg)
       break;
 
     case 4:
-      if (balstat == 0)
+      if (balstat == 0 && Ign == 0)
       {
         cellVolt[9] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
         cellVolt[10] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
@@ -354,25 +354,25 @@ float BMSModule::getLowTemp()
 float BMSModule::getHighTemp()
 {
   /*
-  float temphigh = -39;
-  for (int g = 0; g < 4; g++)
-  {
+    float temphigh = -39;
+    for (int g = 0; g < 4; g++)
+    {
     if (temperatures[g] > temphigh && temperatures[g] > -40)
     {
       temphigh = temperatures[g];
     }
-  }
-  return (temphigh);
+    }
+    return (temphigh);
   */
-  
-    if (temperatures[0] > temperatures[1])
-    {
-      return (temperatures[0]);
-    }
-    else
-    {
-        return (temperatures[1]);
-    }
+
+  if (temperatures[0] > temperatures[1])
+  {
+    return (temperatures[0]);
+  }
+  else
+  {
+    return (temperatures[1]);
+  }
 }
 
 float BMSModule::getAvgTemp()

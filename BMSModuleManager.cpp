@@ -145,7 +145,7 @@ void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
   }
   modules[CMU].setExists(true);
   modules[CMU].setReset(true);
-  modules[CMU].decodecan(Id, msg);
+  modules[CMU].decodecan(Id, msg,BalIgnore);
 }
 
 void BMSModuleManager::getAllVoltTemp()
@@ -225,6 +225,11 @@ float BMSModuleManager::getHighVoltage()
 void BMSModuleManager::setBatteryID(int id)
 {
   batteryID = id;
+}
+
+void BMSModuleManager::setBalIgnore(bool BalIgn)
+{
+ BalIgnore = BalIgn;
 }
 
 void BMSModuleManager::setPstrings(int Pstrings)

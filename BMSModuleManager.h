@@ -20,6 +20,7 @@ public:
     void getAllVoltTemp();
     void readSetpoints();
     void setBatteryID(int id);
+    void setBalIgnore(bool BalIgn);
     void setPstrings(int Pstrings);
     void setUnderVolt(float newVal);
     void setOverVolt(float newVal);
@@ -47,6 +48,7 @@ int getNumModules();
 
 
 private:
+bool BalIgnore;
     float packVolt;                         // All modules added together
     int Pstring;
     float LowCellVolt;

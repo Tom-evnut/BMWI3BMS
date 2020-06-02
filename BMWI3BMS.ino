@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 300520;
+int firmver = 020620;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -874,6 +874,21 @@ void loop()
     {
       dashupdate();
     }
+
+    ///stop reading voltages during balancing//
+    if((settings.balanceDuty + 5) > ((balancetimer - millis()) * 0.001))
+    {
+      bms.setBalIgnore(true);
+      /*
+      Serial.println();
+      Serial.println("Ignore Voltages Balancing Active");
+      */
+    }
+    else
+    {
+      bms.setBalIgnore(false);
+    }
+    
     resetwdog();
   }
   if (millis() - cleartime > 5000)
