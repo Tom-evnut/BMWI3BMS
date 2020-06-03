@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 020620;
+int firmver = 030620;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3088,7 +3088,7 @@ void canread()
 {
   Can0.read(inMsg);
   // Read data: len = data length, buf = data byte(s)
-  if (inMsg.id == 0x3c)
+  if (inMsg.id == 0x3C2)
   {
     CAB300();
   }
