@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 300720;
+int firmver = 10820;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -876,19 +876,19 @@ void loop()
     }
 
     ///stop reading voltages during balancing//
-    if((settings.balanceDuty + 5) > ((balancetimer - millis()) * 0.001))
+    if ((settings.balanceDuty + 5) > ((balancetimer - millis()) * 0.001))
     {
       bms.setBalIgnore(true);
       /*
-      Serial.println();
-      Serial.println("Ignore Voltages Balancing Active");
+        Serial.println();
+        Serial.println("Ignore Voltages Balancing Active");
       */
     }
     else
     {
       bms.setBalIgnore(false);
     }
-    
+
     resetwdog();
   }
   if (millis() - cleartime > 5000)
@@ -3162,7 +3162,7 @@ void CAB300()
     RawCur = CANmilliamps;
     getcurrent();
   }
-  if (candebug == 1)
+  if (candebug == 1 && debug == 1)
   {
     Serial.println();
     Serial.print(CANmilliamps);

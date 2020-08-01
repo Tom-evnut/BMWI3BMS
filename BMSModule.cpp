@@ -56,7 +56,7 @@ void BMSModule::decodetemp(CAN_message_t &msg, int CSC)
   }
 }
 
-void BMSModule::decodecan(int Id, CAN_message_t &msg, bool Ign)
+void BMSModule::decodecan(int Id, CAN_message_t &msg, int debug)
 {
   switch (Id)
   {
@@ -69,6 +69,11 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg, bool Ign)
       if (msg.buf[1] < 0x40)
       {
         cellVolt[0] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
+        if (debug == 1)
+        {
+          Serial.println();
+          Serial.println(cellVolt[0]);
+        }
       }
       if (msg.buf[3] < 0x40)
       {
@@ -82,13 +87,13 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg, bool Ign)
 
     case 2:
       if (msg.buf[1] < 0x40)
-      {        
+      {
         cellVolt[3] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-              }
+      }
       if (msg.buf[3] < 0x40)
       {
         cellVolt[4] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
-              }
+      }
       if (msg.buf[5] < 0x40)
       {
         cellVolt[5] = float(msg.buf[4] + (msg.buf[5] & 0x3F) * 256) / 1000;
@@ -97,13 +102,13 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg, bool Ign)
 
     case 3:
       if (msg.buf[1] < 0x40)
-      {  
+      {
         cellVolt[6] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-                      }
+      }
       if (msg.buf[3] < 0x40)
       {
         cellVolt[7] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
-                      }
+      }
       if (msg.buf[5] < 0x40)
       {
         cellVolt[8] = float(msg.buf[4] + (msg.buf[5] & 0x3F) * 256) / 1000;
@@ -112,13 +117,13 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg, bool Ign)
 
     case 4:
       if (msg.buf[1] < 0x40)
-      { 
+      {
         cellVolt[9] = float(msg.buf[0] + (msg.buf[1] & 0x3F) * 256) / 1000;
-                              }
+      }
       if (msg.buf[3] < 0x40)
       {
         cellVolt[10] = float(msg.buf[2] + (msg.buf[3] & 0x3F) * 256) / 1000;
-                              }
+      }
       if (msg.buf[5] < 0x40)
       {
         cellVolt[11] = float(msg.buf[4] + (msg.buf[5] & 0x3F) * 256) / 1000;
@@ -129,6 +134,7 @@ void BMSModule::decodecan(int Id, CAN_message_t &msg, bool Ign)
 
       break;
   }
+
   for (int i = 0; i < 12; i++)
   {
     if (lowestCellVolt[i] > cellVolt[i] && cellVolt[i] >= IgnoreCell) lowestCellVolt[i] = cellVolt[i];
@@ -160,27 +166,6 @@ uint8_t BMSModule::getCUVCells()
 {
   return CUVFaults;
 }
-
-/*
-  Reading the setpoints, after a reset the default tesla setpoints are loaded
-  Default response : 0x10, 0x80, 0x31, 0x81, 0x08, 0x81, 0x66, 0xff
-*/
-/*
-  void BMSModule::readSetpoint()
-  {
-  uint8_t payload[3];
-  uint8_t buff[12];
-  payload[0] = moduleAddress << 1; //adresss
-  payload[1] = 0x40;//Alert Status start
-  payload[2] = 0x08;//two registers
-  sendData(payload, 3, false);
-  delay(2);
-  getReply(buff);
-
-  OVolt = 2.0+ (0.05* buff[5]);
-  UVolt = 0.7 + (0.1* buff[7]);
-  Tset = 35 + (5 * (buff[9] >> 4));
-  } */
 
 bool BMSModule::readModuleValues()
 {

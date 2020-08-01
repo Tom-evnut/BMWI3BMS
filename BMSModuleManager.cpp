@@ -145,7 +145,7 @@ void BMSModuleManager::decodecan(CAN_message_t &msg, int debug)
   }
   modules[CMU].setExists(true);
   modules[CMU].setReset(true);
-  modules[CMU].decodecan(Id, msg,BalIgnore);
+  modules[CMU].decodecan(Id, msg, debug);
 }
 
 void BMSModuleManager::getAllVoltTemp()
