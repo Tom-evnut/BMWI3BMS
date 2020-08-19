@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 10820;
+int firmver = 19820;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -163,6 +163,15 @@ float chargerend = 0; //V before Charge Voltage to turn off the finishing charge
 int chargertoggle = 0;
 int ncharger = 1; // number of chargers
 
+//AC current control
+volatile uint32_t pilottimer = 0;
+volatile uint16_t timehigh, duration = 0;
+volatile uint16_t accurlim = 0;
+volatile int dutycycle = 0;
+uint16_t ACvolt = 240;
+uint16_t ChargerEff = 85;
+bool CPdebug = 0;
+
 //variables
 int outputstate = 0;
 int incomingByte = 0;
@@ -256,6 +265,7 @@ void loadSettings()
   settings.convlow = 643; // mV/A current sensor low range channel
   settings.offset1 = 1750; //mV mid point of channel 1
   settings.offset2 = 1750;//mV mid point of channel 2
+  settings.changecur = 20000;//mA change overpoint
   settings.gaugelow = 50; //empty fuel gauge pwm
   settings.gaugehigh = 255; //full fuel gauge pwm
   settings.ESSmode = 0; //activate ESS mode
@@ -398,6 +408,11 @@ void setup()
   //precharge timer kickers
   Pretimer = millis();
   Pretimer1  = millis();
+
+  // setup interrupts
+  //RISING/HIGH/CHANGE/LOW/FALLING
+  attachInterrupt (IN4, isrCP , CHANGE); // attach BUTTON 1 interrupt handler [ pin# 7 ]
+
 }
 
 void loop()
@@ -663,6 +678,7 @@ void loop()
           digitalWrite(OUT2, LOW);
           digitalWrite(OUT1, LOW);//turn off discharge
           contctrl = 0; //turn off out 5 and 6
+          accurlim = 0;
           if (bms.getHighCellVolt() > settings.balanceVoltage && bms.getHighCellVolt() > bms.getLowCellVolt() + settings.balanceHyst)
           {
             //bms.balanceCells();
@@ -700,6 +716,7 @@ void loop()
 
         case (Drive):
           Discharge = 1;
+          accurlim = 0;
           if (digitalRead(IN1) == LOW)//Key OFF
           {
             bmsstatus = Ready;
@@ -1175,6 +1192,22 @@ void printbmsstat()
   SERIALCONSOLE.print(" A DisCharge Current Limit : ");
   SERIALCONSOLE.print(discurrent * 0.1, 0);
   SERIALCONSOLE.print(" A");
+
+  if (bmsstatus == Charge || CPdebug == 1)
+  {
+    Serial.print("  CP Current Limit: ");
+    Serial.print(accurlim * 0.001, 0);
+    /*
+      if (chargecurrentlimit == false)
+      {
+      SERIALCONSOLE.print("A  No Charge Current Limit");
+      }
+      else
+      {
+      SERIALCONSOLE.print("  Charge Current Limit Active");
+      }
+    */
+  }
 }
 
 
@@ -1184,7 +1217,7 @@ void getcurrent()
   {
     if ( settings.cursens == Analoguedual)
     {
-      if (currentact < 19000 && currentact > -19000)
+      if (currentact < settings.changecur && currentact > (settings.changecur * -1))
       {
         sensor = 1;
         adc->startContinuous(ACUR1, ADC_0);
@@ -1298,7 +1331,7 @@ void getcurrent()
     }
     if (sensor == 2)
     {
-      if (currentact > 180000 || currentact < -18000 )
+      if (currentact > settings.changecur || currentact < (settings.changecur * -1) )
       {
         ampsecond = ampsecond + ((currentact * (millis() - lasttime) / 1000) / 1000);
         lasttime = millis();
@@ -2064,6 +2097,12 @@ void menu()
         incomingByte = 'd';
         break;
 
+      case '0':
+        menuload = 1;
+        CPdebug = !CPdebug;
+        incomingByte = 'd';
+        break;
+
       case 'b':
         menuload = 1;
         if (Serial.available() > 0)
@@ -2121,6 +2160,16 @@ void menu()
         if (Serial.available() > 0)
         {
           settings.ncur = Serial.parseInt();
+        }
+        menuload = 1;
+        incomingByte = 'c';
+        break;
+
+      case '8':
+        menuload = 1;
+        if (Serial.available() > 0)
+        {
+          settings.changecur = Serial.parseInt();
         }
         menuload = 1;
         incomingByte = 'c';
@@ -2375,6 +2424,16 @@ void menu()
         }
         menuload = 1;
         incomingByte = 'e';
+        break;
+
+
+      case '9':
+        if (Serial.available() > 0)
+        {
+          settings.ChargeTSetpoint = Serial.parseInt();
+          menuload = 1;
+          incomingByte = 'e';
+        }
         break;
 
     }
@@ -2781,6 +2840,10 @@ void menu()
             break;
         }
         SERIALCONSOLE.println();
+        SERIALCONSOLE.print("9 - Charge Current derate Low: ");
+        SERIALCONSOLE.print(settings.ChargeTSetpoint);
+        SERIALCONSOLE.println(" C");
+        SERIALCONSOLE.println();
         SERIALCONSOLE.println("q - Go back to menu");
         menuload = 6;
         break;
@@ -2942,6 +3005,13 @@ void menu()
           SERIALCONSOLE.print("6 - Current Sensor Deadband:");
           SERIALCONSOLE.print(settings.CurDead);
           SERIALCONSOLE.println(" mV");
+        }
+        if ( settings.cursens == Analoguedual)
+        {
+
+          SERIALCONSOLE.print("8 - Current Channel ChangeOver:");
+          SERIALCONSOLE.print(settings.changecur * 0.001);
+          SERIALCONSOLE.println(" A");
         }
         SERIALCONSOLE.println("q - Go back to menu");
         menuload = 2;
@@ -3239,6 +3309,8 @@ void currentlimit()
       if (bms.getLowTemperature() < settings.ChargeTSetpoint)
       {
         chargecurrent = chargecurrent - map(bms.getLowTemperature(), settings.UnderTSetpoint, settings.ChargeTSetpoint, settings.chargecurrentmax, 0);
+        //Serial.println();
+        // Serial.println("temperature derate charge current");
       }
       //Voltagee based///
       if (storagemode == 1)
@@ -3253,6 +3325,8 @@ void currentlimit()
         if (bms.getHighCellVolt() > (settings.ChargeVsetpoint - settings.ChargeHys))
         {
           chargecurrent = chargecurrent - map(bms.getHighCellVolt(), (settings.ChargeVsetpoint - settings.ChargeHys), settings.ChargeVsetpoint, 0, (settings.chargecurrentmax - settings.chargecurrentend));
+          // Serial.println();
+          //    Serial.println("Voltage derate charge current");
         }
       }
     }
@@ -3604,6 +3678,26 @@ void dashupdate()
 
 void chargercomms()
 {
+  if (accurlim > 0)
+  {
+    uint16_t chargerpower = (accurlim * 0.001) * ACvolt * ChargerEff * 0.1;
+    int chargelim = chargerpower / (settings.ChargeVsetpoint * settings.Scells);
+    if (chargelim < chargecurrent)
+    {
+      chargecurrent = chargelim;
+      //Serial.println();
+      //Serial.println("CP derate charge current");
+    }
+    if (CPdebug == 1)
+    {
+      Serial.println();
+      Serial.print(" DC Power : ");
+      Serial.print(chargerpower * 0.1, 0);
+      Serial.print(" DC Charge : ");
+      Serial.print(chargelim);
+    }
+  }
+
   if (settings.chargertype == Elcon)
   {
     msg.id  =  0x1806E5F4; //broadcast to all Elteks
@@ -3760,3 +3854,16 @@ void resetbalancedebug()
 
   Can0.write(msg);
 }
+
+void isrCP ()
+{
+  if (  digitalRead(IN4) == HIGH)
+  {
+    duration = micros() - pilottimer;
+    pilottimer = micros();
+  }
+  else
+  {
+    accurlim = (micros() - pilottimer) * 100 / duration * 600; //Calculate the duty cycle then multiply by 600 to get mA current limit
+  }
+}  // ******** end of isr CP ********

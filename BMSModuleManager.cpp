@@ -272,7 +272,6 @@ float BMSModuleManager::getAvgTemperature()
         if (modules[x].getLowTemp() < lowTemp)
         {
           lowTemp = modules[x].getLowTemp();
-
         }
       }
       else
