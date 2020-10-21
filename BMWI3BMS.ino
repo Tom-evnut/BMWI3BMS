@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 19820;
+int firmver = 21020;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -618,15 +618,15 @@ void loop()
       }
       else
       {
-        /*
-          digitalWrite(OUT2, HIGH);//trip breaker
+        
+          //digitalWrite(OUT2, HIGH);//trip breaker
           Discharge = 0;
           digitalWrite(OUT4, LOW);
           digitalWrite(OUT3, LOW);//turn off charger
           digitalWrite(OUT2, LOW);
           digitalWrite(OUT1, LOW);//turn off discharge
           contctrl = 0; //turn off out 5 and 6
-        */
+        
         if (SOCset == 1)
         {
           if (settings.tripcont == 0)
@@ -908,36 +908,44 @@ void loop()
 
     resetwdog();
   }
-  if (millis() - cleartime > 5000)
-  {
-    //bms.clearmodules(); // Not functional
-    if (bms.checkcomms())
+
+    if (millis() - cleartime > 10000)
     {
-      //no missing modules
-      /*
-        SERIALCONSOLE.println("  ");
-        SERIALCONSOLE.print(" ALL OK NO MODULE MISSING :) ");
-        SERIALCONSOLE.println("  ");
-      */
-      if (  bmsstatus == Error)
+      if (SOCset == 1)
       {
-        bmsstatus = Boot;
+        if (bms.checkcomms())
+        {
+          //no missing modules
+          /*
+            SERIALCONSOLE.println("  ");
+            SERIALCONSOLE.print(" ALL OK NO MODULE MISSING :) ");
+            SERIALCONSOLE.println("  ");
+          */
+          /*
+            if (  bmsstatus == Error)
+            {
+            bmsstatus = Boot;
+            }
+          */
+        }
+        else
+        {
+          //missing module
+          if (debug != 0)
+          {
+            SERIALCONSOLE.println("  ");
+            SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
+            SERIALCONSOLE.println("  ");
+          }
+          bmsstatus = Error;
+          ErrorReason = 4;
+        }
+        bms.clearmodules();
       }
+      cleartime = millis();
     }
-    else
-    {
-      //missing module
-      if (debug != 0)
-      {
-        SERIALCONSOLE.println("  ");
-        SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
-        SERIALCONSOLE.println("  ");
-      }
-      bmsstatus = Error;
-      ErrorReason = 4;
-    }
-    cleartime = millis();
-  }
+
+
   if (millis() - looptime1 > settings.chargerspd)
   {
     looptime1 = millis();
