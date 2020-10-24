@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 21020;
+int firmver = 241020;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -618,35 +618,26 @@ void loop()
       }
       else
       {
-        
-          //digitalWrite(OUT2, HIGH);//trip breaker
-          Discharge = 0;
-          digitalWrite(OUT4, LOW);
-          digitalWrite(OUT3, LOW);//turn off charger
-          digitalWrite(OUT2, LOW);
-          digitalWrite(OUT1, LOW);//turn off discharge
-          contctrl = 0; //turn off out 5 and 6
-        
+
+        //digitalWrite(OUT2, HIGH);//trip breaker
+        Discharge = 0;
+        digitalWrite(OUT4, LOW);
+        digitalWrite(OUT3, LOW);//turn off charger
+        digitalWrite(OUT2, LOW);
+        digitalWrite(OUT1, LOW);//turn off discharge
+        contctrl = 0; //turn off out 5 and 6
+
         if (SOCset == 1)
         {
           if (settings.tripcont == 0)
           {
-            if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
-            {
-              digitalWrite(OUT2, HIGH);//trip breaker
-            }
-            else
-            {
-              digitalWrite(OUT2, LOW);//trip breaker
-            }
+            digitalWrite(OUT2, HIGH);//trip breaker
           }
           else
           {
-            if (bms.getLowCellVolt() < settings.UnderVSetpoint || bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighTemperature() > settings.OverTSetpoint)
-            {
-              digitalWrite(OUT2, LOW);//turn off contactor
-              digitalWrite(OUT4, LOW);//ensure precharge is low
-            }
+
+            digitalWrite(OUT2, LOW);//turn off contactor
+            digitalWrite(OUT4, LOW);//ensure precharge is low
           }
           if (bms.getLowCellVolt() > settings.UnderVSetpoint || bms.getHighCellVolt() < settings.OverVSetpoint || bms.getHighTemperature() < settings.OverTSetpoint)
           {
@@ -909,41 +900,41 @@ void loop()
     resetwdog();
   }
 
-    if (millis() - cleartime > 10000)
+  if (millis() - cleartime > 10000)
+  {
+    if (SOCset == 1)
     {
-      if (SOCset == 1)
+      if (bms.checkcomms())
       {
-        if (bms.checkcomms())
-        {
-          //no missing modules
-          /*
-            SERIALCONSOLE.println("  ");
-            SERIALCONSOLE.print(" ALL OK NO MODULE MISSING :) ");
-            SERIALCONSOLE.println("  ");
-          */
-          /*
-            if (  bmsstatus == Error)
-            {
-            bmsstatus = Boot;
-            }
-          */
-        }
-        else
-        {
-          //missing module
-          if (debug != 0)
+        //no missing modules
+        /*
+          SERIALCONSOLE.println("  ");
+          SERIALCONSOLE.print(" ALL OK NO MODULE MISSING :) ");
+          SERIALCONSOLE.println("  ");
+        */
+        /*
+          if (  bmsstatus == Error)
           {
-            SERIALCONSOLE.println("  ");
-            SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
-            SERIALCONSOLE.println("  ");
+          bmsstatus = Boot;
           }
-          bmsstatus = Error;
-          ErrorReason = 4;
-        }
-        bms.clearmodules();
+        */
       }
-      cleartime = millis();
+      else
+      {
+        //missing module
+        if (debug != 0)
+        {
+          SERIALCONSOLE.println("  ");
+          SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
+          SERIALCONSOLE.println("  ");
+        }
+        bmsstatus = Error;
+        ErrorReason = 4;
+      }
+      bms.clearmodules();
     }
+    cleartime = millis();
+  }
 
 
   if (millis() - looptime1 > settings.chargerspd)
