@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 241020;
+int firmver = 271020;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -133,6 +133,8 @@ byte rxBuf[8];
 char msgString[128];                        // Array to store serial string
 uint32_t inbox;
 signed long CANmilliamps;
+
+uint8_t commscount = 0; //comms error counter
 
 //struct can_frame canMsg;
 //MCP2515 CAN1(10); //set CS pin for can controlelr
@@ -601,7 +603,6 @@ void loop()
         {
           if (digitalRead(OUT1) == 1)
           {
-
             if ((millis() - undertriptimer) > settings.triptime)
             {
               Serial.println();
@@ -940,7 +941,7 @@ void loop()
     resetwdog();
   }
 
-  if (millis() - cleartime > 30000)
+  if (millis() - cleartime > 5000)
   {
     if (SOCset == 1)
     {
@@ -958,9 +959,12 @@ void loop()
           bmsstatus = Boot;
           }
         */
+        commscount = 0;
       }
       else
       {
+        if(commscount <= 2)
+        {
         //missing module
         if (debug != 0)
         {
@@ -968,10 +972,16 @@ void loop()
           SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
           SERIALCONSOLE.println("  ");
         }
+        bms.clearmodules();
         bmsstatus = Error;
         ErrorReason = 4;
+        }
+        else
+        {
+          commscount = commscount + 1;
+        }
       }
-      bms.clearmodules();
+      //bms.clearmodules();
     }
     cleartime = millis();
   }
