@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 271020;
+int firmver = 210331;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -963,18 +963,18 @@ void loop()
       }
       else
       {
-        if(commscount <= 2)
+        if (commscount <= 2)
         {
-        //missing module
-        if (debug != 0)
-        {
-          SERIALCONSOLE.println("  ");
-          SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
-          SERIALCONSOLE.println("  ");
-        }
-        bms.clearmodules();
-        bmsstatus = Error;
-        ErrorReason = 4;
+          //missing module
+          if (debug != 0)
+          {
+            SERIALCONSOLE.println("  ");
+            SERIALCONSOLE.print("   !!! MODULE MISSING !!!");
+            SERIALCONSOLE.println("  ");
+          }
+          bms.clearmodules();
+          bmsstatus = Error;
+          ErrorReason = 4;
         }
         else
         {
@@ -3207,10 +3207,21 @@ void canread()
 {
   Can0.read(inMsg);
   // Read data: len = data length, buf = data byte(s)
-  if (inMsg.id == 0x3C2)
+
+  switch (inMsg.id)
   {
-    CAB300();
+    case 0x3c1:
+      CAB500();
+      break;
+
+    case 0x3c2:
+      CAB300();
+      break;
+
+    default:
+      break;
   }
+
 
   if (inMsg.id > 0x99 && inMsg.id < 0x160)//do VW BMS magic if ids are ones identified to be modules
   {
@@ -3288,6 +3299,42 @@ void CAB300()
     Serial.print("mA ");
   }
 }
+
+void CAB500()
+{
+  inbox = 0;
+  for (int i = 1; i < 4; i++)
+  {
+    inbox = (inbox << 8) | inMsg.buf[i];
+  }
+  CANmilliamps = inbox;
+  if (candebug == 1)
+  {
+    Serial.println();
+    Serial.print(CANmilliamps, HEX);
+  }
+  if (CANmilliamps > 0x800000)
+  {
+    CANmilliamps -= 0x800000;
+  }
+  else
+  {
+    CANmilliamps = (0x800000 - CANmilliamps) * -1;
+  }
+  if ( settings.cursens == Canbus)
+  {
+    RawCur = CANmilliamps;
+    getcurrent();
+  }
+  if (candebug == 1)
+  {
+    Serial.println();
+    Serial.print(CANmilliamps);
+    Serial.print("mA ");
+  }
+}
+
+
 void currentlimit()
 {
   if (bmsstatus == Error)
