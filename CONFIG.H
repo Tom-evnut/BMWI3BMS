@@ -55,7 +55,7 @@ typedef struct {
   float WarnOff;
   float OverTSetpoint;
   float UnderTSetpoint;
-    uint16_t triptime;
+  uint16_t triptime;
   float ChargeTSetpoint;
   float DisTSetpoint;
   float WarnToff;
@@ -81,7 +81,7 @@ typedef struct {
   float convlow;
   uint16_t offset1;
   uint16_t offset2;
-    int32_t changecur;
+  int32_t changecur;
   uint16_t balanceDuty;
   int ESSmode;
   int gaugelow;
@@ -92,8 +92,9 @@ typedef struct {
   uint16_t UnderDur;
   uint16_t CurDead;
   float DisTaper;
-   bool ChargerDirect;
-   uint8_t tripcont;
-   uint8_t CSCvariant;
-   int16_t TempOff;
+  bool ChargerDirect;
+  uint8_t tripcont;
+  uint8_t CSCvariant;
+  int16_t TempOff;
+  int curcan;
 } EEPROMSettings;
