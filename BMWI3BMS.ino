@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 270431;
+int firmver = 210614;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -441,7 +441,7 @@ void loop()
   if (outputcheck != 1)
   {
     contcon();
-if (settings.ESSmode == 1)
+    if (settings.ESSmode == 1)
     {
       if (bmsstatus != Error && bmsstatus != Boot)
       {
@@ -2296,8 +2296,8 @@ void menu()
         menuload = 1;
         incomingByte = 'c';
         break;
-        
-case '7': //s for switch sensor
+
+      case '7': //s for switch sensor
         settings.curcan++;
         if (settings.curcan > CurCanMax) {
           settings.curcan = 1;
@@ -3290,6 +3290,11 @@ void canread()
       {
         case 0x521: //
           CANmilliamps = rxBuf[5] + (rxBuf[4] << 8) + (rxBuf[3] << 16) + (rxBuf[2] << 24);
+          if (settings.cursens == Canbus)
+          {
+            RawCur = CANmilliamps;
+            getcurrent();
+          }
           break;
         case 0x522: //
           voltage1 = rxBuf[5] + (rxBuf[4] << 8) + (rxBuf[3] << 16) + (rxBuf[2] << 24);
