@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 210614;
+int firmver = 210618;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -651,6 +651,8 @@ void loop()
             {
               digitalWrite(OUT2, HIGH);//trip breaker
               bmsstatus = Error;
+              bmsstatus = Error;
+              ErrorReason = 5;
             }
             else
             {
@@ -665,6 +667,7 @@ void loop()
               contctrl = contctrl & 253; //turn off contactor
               digitalWrite(OUT4, LOW);//ensure precharge is low
               bmsstatus = Error;
+              ErrorReason = 5;
             }
           }
         }
@@ -1137,10 +1140,10 @@ void printbmsstat()
     {
       if (bms.getLowCellVolt() > settings.UnderVSetpoint && bms.getHighCellVolt() < settings.OverVSetpoint)
       {
-
         if ( bmsstatus == Error)
         {
           SERIALCONSOLE.print(": UNhappy:");
+          SERIALCONSOLE.print(ErrorReason);
         }
         else
         {
