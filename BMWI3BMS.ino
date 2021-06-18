@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 210618;
+int firmver = 2106182;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -934,6 +934,14 @@ void loop()
         bmsstatus = Error;
         ErrorReason = 3;
       }
+      else
+      {
+        if (ErrorReason == 3)
+        {
+          bmsstatus = Ready;
+          ErrorReason = 33;
+        }
+      }
     }
 
     if (CSVdebug != 1)
@@ -1147,7 +1155,8 @@ void printbmsstat()
         }
         else
         {
-          SERIALCONSOLE.print(": Happy ");
+          SERIALCONSOLE.print(": Happy: ");
+          SERIALCONSOLE.print(ErrorReason);
         }
       }
     }
