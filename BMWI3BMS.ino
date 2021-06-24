@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 2106182;
+int firmver = 2406182;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3268,8 +3268,12 @@ void canread()
     {
       switch (inMsg.id)
       {
+        case 0x3c0:
+          CAB300();
+          break;
+
         case 0x3c1:
-          CAB500();
+          CAB300();
           break;
 
         case 0x3c2:
@@ -3284,6 +3288,10 @@ void canread()
     {
       switch (inMsg.id)
       {
+        case 0x3c0:
+          CAB500();
+          break;
+
         case 0x3c1:
           CAB500();
           break;
