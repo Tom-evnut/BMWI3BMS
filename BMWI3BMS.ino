@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 2406182;
+int firmver = 210704;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3398,7 +3398,7 @@ int pgnFromCANId(int canId)
 
 void CAB300()
 {
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++)//4 byte current encoded in 0 1 2 3
   {
     inbox = (inbox << 8) | inMsg.buf[i];
   }
@@ -3424,7 +3424,7 @@ void CAB300()
   }
 }
 
-void CAB500()
+void CAB500()//3 byte current encoded in 1 2 3
 {
   inbox = 0;
   for (int i = 1; i < 4; i++)
@@ -3432,7 +3432,7 @@ void CAB500()
     inbox = (inbox << 8) | inMsg.buf[i];
   }
   CANmilliamps = inbox;
-  if (candebug == 1)
+  if (candebug == 1 && debug == 1)
   {
     Serial.println();
     Serial.print(CANmilliamps, HEX);
