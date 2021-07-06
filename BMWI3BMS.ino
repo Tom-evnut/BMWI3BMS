@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 210704;
+int firmver = 210706;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3434,8 +3434,10 @@ void CAB500()//3 byte current encoded in 1 2 3
   CANmilliamps = inbox;
   if (candebug == 1 && debug == 1)
   {
+    
     Serial.println();
     Serial.print(CANmilliamps, HEX);
+    Serial.print(" | ");
   }
   if (CANmilliamps > 0x800000)
   {
@@ -3450,9 +3452,8 @@ void CAB500()//3 byte current encoded in 1 2 3
     RawCur = CANmilliamps;
     getcurrent();
   }
-  if (candebug == 1)
+  if (candebug == 1 && debug == 1)
   {
-    Serial.println();
     Serial.print(CANmilliamps);
     Serial.print("mA ");
   }
