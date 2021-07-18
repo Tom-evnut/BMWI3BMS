@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 210706;
+int firmver = 210712;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3892,6 +3892,17 @@ void dashupdate()
   Serial2.print((bms.getHighCellVolt() - bms.getLowCellVolt()) * 1000, 0);
   Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
   Serial2.write(0xff);
+  Serial2.write(0xff);
+  Serial2.print("cellbal.val=");
+  if (balancecells = 1)
+  {
+    Serial2.print(0x01);
+  }
+  else
+  {
+    Serial2.print(0x00);
+  }
+  Serial2.write(0xff);  // We always have to send this three lines after each command sent to the nextion display.
   Serial2.write(0xff);
   Serial2.write(0xff);
 }
