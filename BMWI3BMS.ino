@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 210712;
+int firmver = 210722;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3664,10 +3664,6 @@ void sendcommand() //Send Can Command to get data from slaves
       balancepauze = 0;
     }
   }
-  if (balancepauze == 1)
-  {
-    balancecells = 0;
-  }
 
   if (settings.CSCvariant == BmwI3)
   {
@@ -3694,7 +3690,7 @@ void sendcommand() //Send Can Command to get data from slaves
 
   msg.id  = 0x080 | (nextmes);
   msg.len = 8;
-  if (balancecells == 1)
+  if (balancecells == 1 && balancepauze == 0)
   {
     msg.buf[0] = lowByte((uint16_t((bms.getLowCellVolt()) * 1000) + 10));
     msg.buf[1] = highByte((uint16_t((bms.getLowCellVolt()) * 1000) + 10));
@@ -3894,7 +3890,7 @@ void dashupdate()
   Serial2.write(0xff);
   Serial2.write(0xff);
   Serial2.print("cellbal.val=");
-  if (balancecells = 1)
+  if (balancecells == 1)
   {
     Serial2.print(0x01);
   }
