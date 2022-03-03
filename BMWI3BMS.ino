@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 020222;
+int firmver = 220303;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -193,6 +193,7 @@ int cellspresent = 0;
 int dashused = 1;
 int Charged = 0;
 bool balancepauze = 0;
+int balpauzecnt = 0;
 
 
 //Debugging modes//////////////////
@@ -950,20 +951,21 @@ void loop()
     {
       dashupdate();
     }
-
+/*
     ///stop reading voltages during balancing//
     if ((settings.balanceDuty + 5) > ((balancetimer - millis()) * 0.001))
     {
       bms.setBalIgnore(true);
-      /*
+     
         Serial.println();
         Serial.println("Ignore Voltages Balancing Active");
-      */
+      
     }
     else
     {
       bms.setBalIgnore(false);
     }
+    */
 
     resetwdog();
   }
@@ -3740,9 +3742,11 @@ void sendcommand() //Send Can Command to get data from slaves
   {
     mescycle = 0;
 
-    if (balancetimer < millis())
+    if (balancetimer < millis() && balpauzecnt < 2)
     {
       balancepauze = 1;
+      balpauzecnt ++;
+      bms.setBalIgnore(true);
       if (debug == 1)
       {
         Serial.println();
@@ -3754,6 +3758,8 @@ void sendcommand() //Send Can Command to get data from slaves
     else
     {
       balancepauze = 0;
+      balpauzecnt = 0;
+      bms.setBalIgnore(false);
     }
   }
 
