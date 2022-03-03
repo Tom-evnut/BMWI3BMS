@@ -194,6 +194,7 @@ int dashused = 1;
 int Charged = 0;
 bool balancepauze = 0;
 int balpauzecnt = 0;
+int balstop = 5;
 
 
 //Debugging modes//////////////////
@@ -673,6 +674,7 @@ void loop()
               ErrorReason = 5;
             }
           }
+
         }
       }
       else
@@ -951,20 +953,20 @@ void loop()
     {
       dashupdate();
     }
-/*
-    ///stop reading voltages during balancing//
-    if ((settings.balanceDuty + 5) > ((balancetimer - millis()) * 0.001))
-    {
-      bms.setBalIgnore(true);
-     
-        Serial.println();
-        Serial.println("Ignore Voltages Balancing Active");
-      
-    }
-    else
-    {
-      bms.setBalIgnore(false);
-    }
+    /*
+        ///stop reading voltages during balancing//
+        if ((settings.balanceDuty + 5) > ((balancetimer - millis()) * 0.001))
+        {
+          bms.setBalIgnore(true);
+
+            Serial.println();
+            Serial.println("Ignore Voltages Balancing Active");
+
+        }
+        else
+        {
+          bms.setBalIgnore(false);
+        }
     */
 
     resetwdog();
@@ -1211,6 +1213,8 @@ void printbmsstat()
     //SERIALCONSOLE.print(balancepauze);
     //SERIALCONSOLE.print("| Counter: ");
     SERIALCONSOLE.print((balancetimer - millis()) * 0.001, 0);
+    SERIALCONSOLE.print("|");
+    SERIALCONSOLE.print(balpauzecnt);
     SERIALCONSOLE.print("|");
   }
   SERIALCONSOLE.print("  ");
@@ -3742,7 +3746,7 @@ void sendcommand() //Send Can Command to get data from slaves
   {
     mescycle = 0;
 
-    if (balancetimer < millis() && balpauzecnt < 2)
+    if (balancetimer < millis())
     {
       balancepauze = 1;
       balpauzecnt ++;
@@ -3753,7 +3757,10 @@ void sendcommand() //Send Can Command to get data from slaves
         Serial.println("Reset Balance Timer");
         Serial.println();
       }
-      balancetimer = millis() + ((settings.balanceDuty + 60) * 1000);
+      if (balpauzecnt > balstop)
+      {
+        balancetimer = millis() + ((settings.balanceDuty + 60) * 1000);
+      }
     }
     else
     {
