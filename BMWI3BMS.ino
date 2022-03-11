@@ -192,9 +192,7 @@ int storagemode = 0;
 int cellspresent = 0;
 int dashused = 1;
 int Charged = 0;
-bool balancepauze = 0;
-int balpauzecnt = 0;
-int balstop = 5;
+
 
 
 //Debugging modes//////////////////
@@ -218,6 +216,10 @@ uint8_t Imod, mescycle = 0;
 uint8_t nextmes = 0;
 uint16_t commandrate = 50;
 uint8_t testcycle = 0;
+
+bool balancepauze = 0;
+int balpauzecnt = 0;
+int balstop = 10;
 
 
 //BMW checksum variable///
