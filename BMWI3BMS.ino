@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 220303;
+int firmver = 220311;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3750,7 +3750,6 @@ void sendcommand() //Send Can Command to get data from slaves
     {
       balancepauze = 1;
       balpauzecnt ++;
-      bms.setBalIgnore(true);
       if (debug == 1)
       {
         Serial.println();
@@ -3760,6 +3759,7 @@ void sendcommand() //Send Can Command to get data from slaves
       if (balpauzecnt > balstop)
       {
         balancetimer = millis() + ((settings.balanceDuty + 60) * 1000);
+        bms.setBalIgnore(true);
       }
     }
     else
