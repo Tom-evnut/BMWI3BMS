@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 220311;
+int firmver = 220505;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -113,7 +113,7 @@ int ErrorReason = 0;
 int pulltime = 100;
 int contctrl, contstat = 0; //1 = out 5 high 2 = out 6 high 3 = both high
 unsigned long conttimer1, conttimer2, conttimer3, Pretimer, Pretimer1, overtriptimer, undertriptimer, mainconttimer, balancetimer = 0;
-uint16_t pwmfreq = 18000;//pwm frequency
+uint16_t pwmfreq = 200;//pwm frequency
 
 int pwmcurmax = 50;//Max current to be shown with pwm
 int pwmcurmid = 50;//Mid point for pwm dutycycle based on current
@@ -513,7 +513,7 @@ void loop()
 
         if (storagemode == 1)
         {
-          if (bms.getHighCellVolt() > settings.StoreVsetpoint)
+          if (bms.getHighCellVolt() > settings.StoreVsetpoint || chargecurrent == 0)
           {
             digitalWrite(OUT3, LOW);//turn off charger
             // contctrl = contctrl & 253;
@@ -553,7 +553,7 @@ void loop()
         }
         else
         {
-          if (bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighCellVolt() > settings.ChargeVsetpoint)
+          if (bms.getHighCellVolt() > settings.OverVSetpoint || bms.getHighCellVolt() > settings.ChargeVsetpoint || chargecurrent == 0)
           {
             if ((millis() - overtriptimer) > settings.triptime)
             {
