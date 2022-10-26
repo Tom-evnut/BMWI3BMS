@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 220531;
+int firmver = 221026;
 
 //Curent filter//
 float filterFrequency = 5.0 ;
@@ -3427,7 +3427,7 @@ void canread()
       switch (inMsg.id)
       {
         case 0x521: //
-          CANmilliamps = inMsg.buf[5] + (inMsg.buf[4] << 8) + (inMsg.buf[3] << 16) + (inMsg.buf[2] << 24);
+          CANmilliamps = (long)((inMsg.buf[2] << 24) | (inMsg.buf[3] << 16) | (inMsg.buf[4] << 8) | (inMsg.buf[5]));
           if ( settings.cursens == Canbus)
           {
             RawCur = CANmilliamps;
@@ -3435,10 +3435,10 @@ void canread()
           }
           break;
         case 0x522: //
-          voltage1 = inMsg.buf[5] + (inMsg.buf[4] << 8) + (inMsg.buf[3] << 16) + (inMsg.buf[2] << 24);
+          voltage1 = (long)((inMsg.buf[2] << 24) | (inMsg.buf[3] << 16) | (inMsg.buf[4] << 8) | (inMsg.buf[5]));
           break;
         case 0x523: //
-          voltage2 = inMsg.buf[5] + (inMsg.buf[4] << 8) + (inMsg.buf[3] << 16) + (inMsg.buf[2] << 24);
+          voltage2 = (long)((inMsg.buf[2] << 24) | (inMsg.buf[3] << 16) | (inMsg.buf[4] << 8) | (inMsg.buf[5]));
           break;
         default:
           break;

@@ -229,7 +229,7 @@ void BMSModuleManager::setBatteryID(int id)
 
 void BMSModuleManager::setBalIgnore(bool BalIgn)
 {
- BalIgnore = BalIgn;
+  BalIgnore = BalIgn;
 }
 
 void BMSModuleManager::setPstrings(int Pstrings)
@@ -541,4 +541,6 @@ void BMSModuleManager::printAllCSV(unsigned long timestamp, float current, int S
       Serial2.println();
     }
   }
+  Serial2.print("12345");
+  Serial2.println();
 }
