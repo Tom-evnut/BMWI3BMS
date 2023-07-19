@@ -41,7 +41,7 @@ SerialConsole console;
 EEPROMSettings settings;
 
 /////Version Identifier/////////
-int firmver = 230510;
+int firmver = 230719;
 
 //Curent filter//
 float filterFrequency = 5.0;
@@ -424,6 +424,11 @@ void setup() {
       SOCmem = 1;
     }
   }
+
+
+  SERIALCONSOLE.println("Recovery SOC: ");
+  SERIALCONSOLE.print(SOC);
+
   ////Calculate fixed numbers
   pwmcurmin = (pwmcurmid / 50 * pwmcurmax * -1);
   ////
@@ -435,6 +440,13 @@ void setup() {
   // setup interrupts
   //RISING/HIGH/CHANGE/LOW/FALLING
   attachInterrupt(IN4, isrCP, CHANGE);  // attach BUTTON 1 interrupt handler [ pin# 7 ]
+
+  PMC_LVDSC1 = PMC_LVDSC1_LVDV(1);                     // enable hi v
+  PMC_LVDSC2 = PMC_LVDSC2_LVWIE | PMC_LVDSC2_LVWV(3);  // 2.92-3.08v
+  attachInterruptVector(IRQ_LOW_VOLTAGE, low_voltage_isr);
+  NVIC_ENABLE_IRQ(IRQ_LOW_VOLTAGE);
+
+  bmsstatus = Boot;
 }
 
 void loop() {
@@ -1241,14 +1253,14 @@ void getcurrent() {
 
 
 void updateSOC() {
-   if (SOCreset == 1) {
+  if (SOCreset == 1) {
     SOC = map(uint16_t(bms.getLowCellVolt() * 1000), settings.socvolt[0], settings.socvolt[2], settings.socvolt[1], settings.socvolt[3]);
     ampsecond = (SOC * settings.CAP * settings.Pstrings * 10) / 0.27777777777778;
     SOCreset = 0;
   }
 
   if (SOCset == 0 && SOCmem == 0) {
-         if (millis() > 9000) {
+    if (millis() > 9000) {
       bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt, settings.TempOff);
     }
     if (millis() > 10000) {
@@ -1268,7 +1280,7 @@ void updateSOC() {
 
   if (SOCset == 0 && SOCmem == 1) {
     ampsecond = (SOC * settings.CAP * settings.Pstrings * 10) / 0.27777777777778;
-         if (millis() > 9000) {
+    if (millis() > 9000) {
       bms.setSensors(settings.IgnoreTemp, settings.IgnoreVolt, settings.TempOff);
     }
     if (millis() > 10000) {
@@ -2406,7 +2418,7 @@ void menu() {
         incomingByte = 'b';
         break;
 
-case 'r':  //r for reset
+      case 'r':  //r for reset
         SOCreset = 1;
         SERIALCONSOLE.println("  ");
         SERIALCONSOLE.print(" mAh Reset ");
@@ -3731,4 +3743,7 @@ void low_voltage_isr(void) {
 
   PMC_LVDSC2 |= PMC_LVDSC2_LVWACK;  // clear if we can
   PMC_LVDSC1 |= PMC_LVDSC1_LVDACK;
+
+  Serial.println();
+  Serial.println("GoodBye");
 }
